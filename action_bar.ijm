@@ -556,14 +556,16 @@ function mergeImages(outputDirs, mergeOutputDir, numFolders, channelsSelected) {
             }
         }
 
+        // Ensure all images are in RGB format before merging
         for (k = 0; k < openImages.length; k++) {
             selectWindow(openImages[k]);
             run("RGB Color");
         }
 
+        // Merge channels without changing colors
         mergeCommand = "";
         for (k = 0; k < numFolders; k++) {
-            mergeCommand += channelsSelected[k] + "=[" + replaceSpaces(openImages[k]) + "] ";
+            mergeCommand += channelsSelected[k] + "=" + replaceSpaces(openImages[k]) + " ";
         }
         mergeCommand += "create keep";
 
@@ -571,12 +573,17 @@ function mergeImages(outputDirs, mergeOutputDir, numFolders, channelsSelected) {
 
         run("Merge Channels...", mergeCommand);
 
-        originalFileName = replaceExtension(list[i], "");
-        saveMergedPath = mergeOutputDir + replaceSpaces(originalFileName) + "_merge.jpg";
+        // Extract the base name from the current image
+        baseName = replaceExtension(list[i], "");
+        baseName = replaceSpaces(baseName);
+
+        // Save the merged image as JPEG with the original file name + "_merge"
+        saveMergedPath = mergeOutputDir + baseName + "_merge.jpg";
         saveAs("Jpeg", saveMergedPath);
         closeAllImages();
     }
 }
+
 
 // Merge Channel 함수 정의
 function mergeChannel() {
