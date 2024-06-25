@@ -191,7 +191,6 @@ function colorblind() {
     for (i = 0; i < fileList.length; i++) {
         filePath = inputDir + fileList[i];
         open(filePath);
-        noiceLUTs();
 
         title = getTitle();
         dotIndex = lastIndexOf(title, '.');
