@@ -98,7 +98,7 @@ function cellCounting() {
 }
 
 function replaceExtension(filename, newExtension) {
-    dotIndex = lastIndexOf(filename, '.');
+    dotIndex = lastIndexOf(filename, ".");
     if (dotIndex != -1) {
         return substring(filename, 0, dotIndex) + newExtension;
     } else {
@@ -107,7 +107,7 @@ function replaceExtension(filename, newExtension) {
 }
 
 function replaceSpaces(filename) {
-    return replace(replace(filename, ' ', '_'), ',', '_');
+    return replace(replace(filename, " ", "_"), ",", "_");
 }
 
 // Image Crop 함수 정의
@@ -583,6 +583,70 @@ function mergeImages(outputDirs, mergeOutputDir, numFolders, channelsSelected) {
         closeAllImages();
     }
 }
+변경 사항 요약:
+
+mergeImages 함수에서 각 파일의 기본 이름을 추출하고 공백을 처리하여 파일 이름이 올바르게 생성되도록 수정했습니다.
+mergeCommand에서 공백을 처리한 파일 이름을 사용하도록 수정했습니다.
+이 변경 사항으로 인해 파일 이름이 여러 파일명을 이어붙여서 저장하는 문제가 해결됩니다.
+
+
+
+
+
+파일명 분리를 못하는 것 같은데, 이미지를 순서대로 가져오는 방식은 안돼?
+ChatGPT
+파일을 순서대로 처리하고 이름을 분리하여 각 이미지에 대해 올바르게 저장하도록 수정한 코드입니다. 각 이미지를 순서대로 열고, 해당 이미지를 하나씩 병합한 후 저장합니다.
+
+변경된 부분은 다음과 같습니다:
+
+java
+코드 복사
+function mergeImages(outputDirs, mergeOutputDir, numFolders, channelsSelected) {
+    // Get the list of files in the first output directory
+    list = getFileList(outputDirs[0]);
+    numImages = list.length;
+
+    for (i = 0; i < numImages; i++) {
+        openImages = newArray(numFolders);
+        for (j = 0; j < numFolders; j++) {
+            // Open the image from each output directory
+            imgList = getFileList(outputDirs[j]);
+            if (i < imgList.length && endsWith(imgList[i], ".jpg")) {
+                open(outputDirs[j] + imgList[i]);
+                openImages[j] = getTitle();
+            } else {
+                exit("There must be an image from each folder to merge.");
+            }
+        }
+
+        // Ensure all images are in RGB format before merging
+        for (k = 0; k < openImages.length; k++) {
+            selectWindow(openImages[k]);
+            run("RGB Color");
+        }
+
+        // Merge channels without changing colors
+        mergeCommand = "";
+        for (k = 0; k < numFolders; k++) {
+            mergeCommand += channelsSelected[k] + "=" + replaceSpaces(openImages[k]) + " ";
+        }
+        mergeCommand += "create keep";
+
+        print("Merge Command: " + mergeCommand);
+
+        run("Merge Channels...", mergeCommand);
+
+        // Use the name of the first image as the base name
+        baseName = replaceExtension(openImages[0], "");
+        baseName = replaceSpaces(baseName);
+
+        // Save the merged image as JPEG with the original file name + "_merge"
+        saveMergedPath = mergeOutputDir + baseName + "_merge.jpg";
+        saveAs("Jpeg", saveMergedPath);
+        closeAllImages();
+    }
+}
+
 
 
 // Merge Channel 함수 정의
