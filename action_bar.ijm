@@ -475,7 +475,7 @@ function saveStackSlicesAsJpeg(baseName, outputDir) {
         } else {
             sliceName = 'Pos00' + j;
         }
-        savePath = outputDir + baseName + '_' + sliceName + '.jpg';
+        savePath = outputDir + replaceSpaces(baseName + '_' + sliceName + '.jpg');
         saveAs('Jpeg', savePath);
     }
 }
@@ -563,7 +563,7 @@ function mergeImages(outputDirs, mergeOutputDir, numFolders, channelsSelected) {
 
         mergeCommand = "";
         for (k = 0; k < numFolders; k++) {
-            mergeCommand += channelsSelected[k] + "=" + openImages[k] + " ";
+            mergeCommand += channelsSelected[k] + "=" + replaceSpaces(openImages[k]) + " ";
         }
         mergeCommand += "create keep";
 
