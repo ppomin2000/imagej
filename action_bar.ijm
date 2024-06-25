@@ -18,9 +18,9 @@ arg=imageCrop();
 <separator>
 
 <button>
-label=<html><font color='black'><b> Colorblind
+label=<html><font color='black'><b> Color Conversion and Save
 bgcolor=#60c1ff
-arg=colorblind();
+arg=colorConversionAndSave();
 <separator>
 
 <button>
@@ -65,7 +65,7 @@ function cellCounting() {
 
     csvPath = inputDir + 'vertex_count_results.csv';
     File.open(csvPath);
-    File.append('Filename,Vertex Count\\n', csvPath);
+    File.append('Filename,Vertex Count\n', csvPath);
 
     processedDir = inputDir + 'processed/';
     if (!File.exists(processedDir)) {
@@ -86,7 +86,7 @@ function cellCounting() {
             run('Watershed');
             run('Analyze Particles...', 'size=5-Infinity circularity=0.2-1.0 show=Nothing display exclude clear include summarize add');
             vertexCount = nResults;
-            File.append(fileList[i] + ',' + vertexCount + '\\n', csvPath);
+            File.append(fileList[i] + ',' + vertexCount + '\n', csvPath);
             savePath = processedDir + replaceSpaces(replaceExtension(fileList[i], '_processed.jpg'));
             saveAs('Jpeg', savePath);
             run('Close All');
@@ -174,8 +174,8 @@ function imageCrop() {
     roiManager('Delete');
 }
 
-// Colorblind 함수 정의
-function colorblind() {
+// Color Conversion and Save 함수 정의
+function colorConversionAndSave() {
     inputDir = getDirectory('Choose a Directory');
     if (inputDir == '') exit('No directory selected.');
 
@@ -191,6 +191,7 @@ function colorblind() {
     for (i = 0; i < fileList.length; i++) {
         filePath = inputDir + fileList[i];
         open(filePath);
+        noiceLUTs();
 
         title = getTitle();
         dotIndex = lastIndexOf(title, '.');
@@ -204,6 +205,64 @@ function colorblind() {
     }
 
     showMessage('Processing Complete', 'All images have been processed and saved in the conversion folder.');
+}
+
+function LUTmaker(r, g, b) {
+    R = newArray(256);
+    G = newArray(256);
+    B = newArray(256);
+    for (i = 0; i < 256; i++) { 
+        R[i] = (r / 256) * (i + 1);
+        G[i] = (g / 256) * (i + 1);
+        B[i] = (b / 256) * (i + 1);
+    }
+    setLut(R, G, B);
+}
+
+function noiceLUTs() {
+    if (nImages == 0) exit('no image');
+    if (isKeyDown('shift') && bitDepth() != 24) {
+        getDimensions(width, height, channels, slices, frames);
+        if (channels == 2) {
+            Stack.setChannel(1); LUTmaker(255, 100, 0); // orange
+            Stack.setChannel(2); LUTmaker(0, 155, 255); // blue
+        }
+        if (channels == 3) {
+            Stack.setChannel(1); LUTmaker(255, 194, 0);
+            Stack.setChannel(2); LUTmaker(0, 255, 194);
+            Stack.setChannel(3); LUTmaker(194, 0, 255);
+        }
+    } else {
+        RGBtoMYC();
+    }
+}
+
+function RGBtoMYC() {
+    showStatus('RGB to MYC');
+    setBatchMode(true);
+    if (bitDepth() == 24) { // if RGB
+        getDimensions(width, height, channels, slices, frames);
+        if (selectionType() != -1) {
+            getSelectionBounds(x, y, width, height);
+            makeRectangle(x, y, width, height);
+        }
+        run('Make Composite');
+        run('Remove Slice Labels');
+        Stack.setChannel(1); LUTmaker(128, 97, 0); resetMinAndMax();
+        Stack.setChannel(2); LUTmaker(0, 128, 97); resetMinAndMax();
+        Stack.setChannel(3); LUTmaker(97, 0, 128); resetMinAndMax();
+        if (slices * frames == 1) {
+            Stack.setDisplayMode('color');
+            Stack.setDisplayMode('composite');
+            run('Stack to RGB');
+        }
+    } else {
+        Stack.setChannel(1); LUTmaker(128, 97, 0);
+        Stack.setChannel(2); LUTmaker(0, 128, 97);
+        Stack.setChannel(3); LUTmaker(97, 0, 128);
+    }
+    setOption('Changes', false);
+    setBatchMode(false);
 }
 
 // Split Channel 함수 정의
@@ -570,6 +629,13 @@ function arrayIndexOf(array, value) {
         }
     }
     return -1;
+}
+
+function closeAllImages() {
+    while (nImages() > 0) {
+        selectImage(nImages());
+        close();
+    }
 }
 
 </codeLibrary>
