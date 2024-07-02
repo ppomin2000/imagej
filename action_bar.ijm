@@ -548,6 +548,10 @@ function mergeImages(outputDirs, mergeOutputDir, numFolders, channelsSelected) {
         openImages = newArray(numFolders);
         for (j = 0; j < outputDirs.length; j++) {
             imgList = getFileList(outputDirs[j]);
+
+            // Sort file names in each directory
+            Array.sort(imgList);
+
             if (i < imgList.length && endsWith(imgList[i], ".jpg")) {
                 open(outputDirs[j] + "\\" + imgList[i]);
                 openImages[j] = getTitle();
