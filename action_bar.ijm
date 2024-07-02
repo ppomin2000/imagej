@@ -100,9 +100,9 @@ function cellCounting() {
 function replaceExtension(filename, newExtension) {
     dotIndex = lastIndexOf(filename, ".");
     if (dotIndex != -1) {
-        return substring(filename, 0, dotIndex) + newExtension;
+        return substring(filename, 0, dotIndex) + "." + newExtension;
     } else {
-        return filename + newExtension;
+        return filename + "." + newExtension;
     }
 }
 
@@ -542,17 +542,14 @@ function getChannelFromFolderName(folderName) {
 }
 
 function mergeImages(outputDirs, mergeOutputDir, numFolders, channelsSelected) {
-    // Get the list of files in the first output directory
     list = getFileList(outputDirs[0]);
     numImages = list.length;
-
     for (i = 0; i < numImages; i++) {
         openImages = newArray(numFolders);
-        for (j = 0; j < numFolders; j++) {
-            // Open the image from each output directory
+        for (j = 0; j < outputDirs.length; j++) {
             imgList = getFileList(outputDirs[j]);
             if (i < imgList.length && endsWith(imgList[i], ".jpg")) {
-                open(outputDirs[j] + imgList[i]);
+                open(outputDirs[j] + "\\" + imgList[i]);
                 openImages[j] = getTitle();
             } else {
                 exit("There must be an image from each folder to merge.");
@@ -568,16 +565,14 @@ function mergeImages(outputDirs, mergeOutputDir, numFolders, channelsSelected) {
         // Merge channels without changing colors
         mergeCommand = "";
         for (k = 0; k < numFolders; k++) {
-            mergeCommand += channelsSelected[k] + "=" + replaceSpaces(openImages[k]) + " ";
+            mergeCommand += channelsSelected[k] + "=" + openImages[k] + " ";
         }
         mergeCommand += "create keep";
-
-        print("Merge Command: " + mergeCommand);
 
         run("Merge Channels...", mergeCommand);
 
         // Use the name of the first image as the base name
-        baseName = replaceExtension(openImages[0], ""); // Use the first image's base name
+        baseName = openImages[0].substring(0, openImages[0].lastIndexOf('.'));
 
         // Save the merged image as JPEG with the original file name + "_merge"
         saveMergedPath = mergeOutputDir + "\\" + replaceSpaces(baseName) + "_merge.jpg";
@@ -585,6 +580,7 @@ function mergeImages(outputDirs, mergeOutputDir, numFolders, channelsSelected) {
         closeAllImages();
     }
 }
+
 
 
 // Merge Channel 함수 정의
