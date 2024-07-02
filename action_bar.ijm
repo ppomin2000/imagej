@@ -622,6 +622,13 @@ function mergeChannel() {
     mergeImages(outputDirs, mergeOutputDir, numFolders, channelsSelected);
 }
 
+function chooseColor(folderNumber, colors) {
+    Dialog.create("Choose LUT color for folder " + folderNumber);
+    Dialog.addChoice("Color:", colors);
+    Dialog.show();
+    return Dialog.getChoice();
+}
+
 function getChannel(color) {
     index = arrayIndexOf(colors, color);
     return channels[index];
@@ -633,14 +640,98 @@ function arrayIndexOf(array, value) {
             return i;
         }
     }
-    return -1;
+    return -1; // Value not found
 }
+
+function createDirectory(path) {
+    if (!File.exists(path)) {
+        success = File.makeDirectory(path);
+        if (!success) {
+            waitForDirectory(path);
+        }
+    }
+}
+
+function waitForDirectory(path) {
+    attempts = 0;
+    while (!File.exists(path) && attempts < 10) {
+        wait(100);
+        attempts++;
+    }
+    if (!File.exists(path)) {
+        exit("Failed to create directory after multiple attempts: " + path);
+    }
+}
+
+function processFolder(folder, color, outputDir) {
+    // Ensure the directory was created successfully before proceeding
+    if (File.exists(outputDir)) {
+        list = getFileList(folder);
+        for (i = 0; i < list.length; i++) {
+            if (endsWith(list[i], ".tif") || endsWith(list[i], ".tiff")) {
+                open(folder + list[i]);
+                setColorLUT(color);
+                
+                // Apply existing brightness/contrast settings
+                run("Apply LUT");
+                
+                // Convert to RGB
+                run("RGB Color");
+
+                // Save as JPEG with spaces replaced by underscores
+                savePath = outputDir + replaceSpaces(replaceExtension(list[i], "jpg"));
+                saveAs("Jpeg", savePath);
+                close();
+            }
+        }
+    } else {
+        exit("Failed to access directory: " + outputDir);
+    }
+}
+
 
 function closeAllImages() {
     while (nImages() > 0) {
         selectImage(nImages());
         close();
     }
+}
+
+function setColorLUT(color) {
+    if (color == "Red") {
+        run("Red");
+    } else if (color == "Green") {
+        run("Green");
+    } else if (color == "Blue") {
+        run("Blue");
+    } else if (color == "Cyan") {
+        run("Cyan");
+    } else if (color == "Magenta") {
+        run("Magenta");
+    } else if (color == "Yellow") {
+        run("Yellow");
+    } else if (color == "Grays") {
+        run("Grays");
+    }
+}
+
+function getFolderName(path) {
+    // Extract the folder name from the path
+    parts = split(path, "\\");
+    return parts[lengthOf(parts) - 1];
+}
+
+function replaceExtension(filename, newExtension) {
+    dotIndex = lastIndexOf(filename, ".");
+    if (dotIndex != -1) {
+        return substring(filename, 0, dotIndex) + "." + newExtension;
+    } else {
+        return filename + "." + newExtension;
+    }
+}
+
+function replaceSpaces(filename) {
+    return replace(replace(filename, " ", "_"), ",", "_");
 }
 
 </codeLibrary>
