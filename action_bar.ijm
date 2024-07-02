@@ -580,7 +580,7 @@ function mergeImages(outputDirs, mergeOutputDir, numFolders, channelsSelected) {
         baseName = replaceExtension(openImages[0], ""); // Use the first image's base name
 
         // Save the merged image as JPEG with the original file name + "_merge"
-        saveMergedPath = mergeOutputDir + replaceSpaces(baseName) + "_merge.jpg";
+        saveMergedPath = mergeOutputDir + "\\" + replaceSpaces(baseName) + "_merge.jpg";
         saveAs("Jpeg", saveMergedPath);
         closeAllImages();
     }
