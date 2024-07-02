@@ -577,14 +577,15 @@ function mergeImages(outputDirs, mergeOutputDir, numFolders, channelsSelected) {
         run("Merge Channels...", mergeCommand);
 
         // Use the name of the first image as the base name
-        baseName = getTitle(); // Use the currently active window's title
+        baseName = replaceExtension(openImages[0], ""); // Use the first image's base name
 
         // Save the merged image as JPEG with the original file name + "_merge"
-        saveMergedPath = mergeOutputDir + replaceSpaces(replaceExtension(baseName, "_merge.jpg"));
+        saveMergedPath = mergeOutputDir + replaceSpaces(baseName) + "_merge.jpg";
         saveAs("Jpeg", saveMergedPath);
         closeAllImages();
     }
 }
+
 
 // Merge Channel 함수 정의
 function mergeChannel() {
