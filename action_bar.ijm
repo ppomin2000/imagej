@@ -52,6 +52,12 @@ label=<html><font color='black'><b> X
 bgcolor=#ff989c
 arg=close();
 
+<button>
+label=HOT Convert
+bgcolor=#ff6666
+arg=HOTcolorconversion();
+<separator>
+
 </line>
 
 <codeLibrary>
@@ -736,6 +742,47 @@ function replaceExtension(filename, newExtension) {
 
 function replaceSpaces(filename) {
     return replace(replace(filename, " ", "_"), ",", "_");
+}
+
+// HOT Color Conversion and Save 함수 정의
+function HOTcolorconversion() {
+    inputDir = getDirectory('Choose a Directory');
+    if (inputDir == '') exit('No directory selected.');
+
+    outputDir = inputDir + 'hot_conversion\\';
+    File.makeDirectory(outputDir);
+
+    fileList = getFileList(inputDir);
+
+    if (fileList.length == 0) {
+        exit('No images found in the selected directory.');
+    }
+
+    for (i = 0; i < fileList.length; i++) {
+        if (endsWith(fileList[i], '.jpg') || endsWith(fileList[i], '.png') || endsWith(fileList[i], '.tif')) {
+            filePath = inputDir + fileList[i];
+            open(filePath);
+
+            if (nImages == 0) {
+                print('Failed to open image: ' + filePath);
+                continue;
+            }
+
+            applyHotLUTs();
+
+            title = getTitle();
+            dotIndex = lastIndexOf(title, '.');
+            if (dotIndex != -1) {
+                title = substring(title, 0, dotIndex);
+            }
+            savePath = outputDir + title + '_hot_conversion.jpg';
+
+            saveAs('Jpeg', savePath);
+            close();  // 색상 변경 후 창 닫기
+        }
+    }
+
+    showMessage('HOT Color Conversion Complete', 'All images have been processed and saved in the hot_conversion folder.');
 }
 
 </codeLibrary>
