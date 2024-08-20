@@ -48,15 +48,17 @@ arg=mergeChannel();
 <separator>
 
 <button>
-label=<html><font color='black'><b> X
-bgcolor=#ff989c
-arg=close();
-
-<button>
 label=HOT Convert
 bgcolor=#ff6666
 arg=HOTcolorconversion();
 <separator>
+
+
+<button>
+label=<html><font color='black'><b> X
+bgcolor=#ff989c
+arg=close();
+
 
 </line>
 
@@ -768,7 +770,7 @@ function HOTcolorconversion() {
                 continue;
             }
 
-            applyHotLUTs();
+            applyHOTLUTs();
 
             title = getTitle();
             dotIndex = lastIndexOf(title, '.');
@@ -783,6 +785,28 @@ function HOTcolorconversion() {
     }
 
     showMessage('HOT Color Conversion Complete', 'All images have been processed and saved in the hot_conversion folder.');
+}
+
+// applyHOTLUTs 함수 정의
+function applyHOTLUTs() {
+    if (nImages == 0) exit("no image");
+    
+    getDimensions(width, height, channels, slices, frames);
+    
+    if (channels >= 1) {
+        Stack.setChannel(1);
+        run("Magenta Hot");
+    }
+    
+    if (channels >= 2) {
+        Stack.setChannel(2);
+        run("Yellow Hot");
+    }
+    
+    if (channels >= 3) {
+        Stack.setChannel(3);
+        run("Cyan Hot");
+    }
 }
 
 </codeLibrary>
