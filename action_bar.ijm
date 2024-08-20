@@ -228,9 +228,9 @@ function noiceLUTs() {
             Stack.setChannel(2); LUTmaker(0, 155, 255); // blue
         }
         if (channels == 3) {
-            Stack.setChannel(1); LUTmaker(255, 0, 255);  // Magenta Hot
-            Stack.setChannel(2); LUTmaker(255, 255, 0);  // Yellow Hot
-            Stack.setChannel(3); LUTmaker(0, 255, 255);  // Cyan Hot
+            Stack.setChannel(1); LUTmaker(255, 51, 255);  // Magenta Hot
+            Stack.setChannel(2); LUTmaker(255, 255, 51);  // Yellow Hot
+            Stack.setChannel(3); LUTmaker(51, 255, 255);  // Cyan Hot
         }
     } else {
         RGBtoMYC();
@@ -248,22 +248,23 @@ function RGBtoMYC() {
         }
         run('Make Composite');
         run('Remove Slice Labels');
-        Stack.setChannel(1); LUTmaker(255, 0, 255);  // Magenta Hot
-        Stack.setChannel(2); LUTmaker(255, 255, 0);  // Yellow Hot
-        Stack.setChannel(3); LUTmaker(0, 255, 255);  // Cyan Hot
+        Stack.setChannel(1); LUTmaker(255, 51, 255);  // Magenta Hot
+        Stack.setChannel(2); LUTmaker(255, 255, 51);  // Yellow Hot
+        Stack.setChannel(3); LUTmaker(51, 255, 255);  // Cyan Hot
         if (slices * frames == 1) {
             Stack.setDisplayMode('color');
             Stack.setDisplayMode('composite');
             run('Stack to RGB');
         }
     } else {
-        Stack.setChannel(1); LUTmaker(255, 0, 255);  // Magenta Hot
-        Stack.setChannel(2); LUTmaker(255, 255, 0);  // Yellow Hot
-        Stack.setChannel(3); LUTmaker(0, 255, 255);  // Cyan Hot
+        Stack.setChannel(1); LUTmaker(255, 51, 255);  // Magenta Hot
+        Stack.setChannel(2); LUTmaker(255, 255, 51);  // Yellow Hot
+        Stack.setChannel(3); LUTmaker(51, 255, 255);  // Cyan Hot
     }
     setOption('Changes', false);
     setBatchMode(false);
 }
+
 
 // Split Channel 함수 정의
 function splitChannel() {
