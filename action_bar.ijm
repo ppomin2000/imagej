@@ -191,7 +191,7 @@ function colorConversionAndSave() {
     for (i = 0; i < fileList.length; i++) {
         filePath = inputDir + fileList[i];
         open(filePath);
-        noiceLUTs();
+        applyHotLUTs();
 
         title = getTitle();
         dotIndex = lastIndexOf(title, '.');
@@ -207,30 +207,18 @@ function colorConversionAndSave() {
     showMessage('Processing Complete', 'All images have been processed and saved in the conversion folder.');
 }
 
-function LUTmaker(r, g, b) {
-    R = newArray(256);
-    G = newArray(256);
-    B = newArray(256);
-    for (i = 0; i < 256; i++) { 
-        R[i] = (r / 256) * (i + 1);
-        G[i] = (g / 256) * (i + 1);
-        B[i] = (b / 256) * (i + 1);
-    }
-    setLut(R, G, B);
-}
-
-function noiceLUTs() {
+function applyHotLUTs() {
     if (nImages == 0) exit('no image');
     if (isKeyDown('shift') && bitDepth() != 24) {
         getDimensions(width, height, channels, slices, frames);
         if (channels == 2) {
-            Stack.setChannel(1); LUTmaker(255, 100, 0); // orange
-            Stack.setChannel(2); LUTmaker(0, 155, 255); // blue
+            Stack.setChannel(1); run("Magenta Hot");
+            Stack.setChannel(2); run("Cyan Hot");
         }
         if (channels == 3) {
-            Stack.setChannel(1); LUTmaker(255, 0, 204);  // Magenta Hot
-            Stack.setChannel(2); LUTmaker(255, 218, 0);  // Yellow Hot
-            Stack.setChannel(3); LUTmaker(44, 254, 255);  // Cyan Hot
+            Stack.setChannel(1); run("Magenta Hot");
+            Stack.setChannel(2); run("Yellow Hot");
+            Stack.setChannel(3); run("Cyan Hot");
         }
     } else {
         RGBtoMYC();
@@ -248,18 +236,18 @@ function RGBtoMYC() {
         }
         run('Make Composite');
         run('Remove Slice Labels');
-        Stack.setChannel(1); LUTmaker(255, 0, 204);  // Magenta Hot
-        Stack.setChannel(2); LUTmaker(255, 218, 0);  // Yellow Hot
-        Stack.setChannel(3); LUTmaker(44, 254, 255);  // Cyan Hot
+        Stack.setChannel(1); run("Magenta Hot");
+        Stack.setChannel(2); run("Yellow Hot");
+        Stack.setChannel(3); run("Cyan Hot");
         if (slices * frames == 1) {
             Stack.setDisplayMode('color');
             Stack.setDisplayMode('composite');
             run('Stack to RGB');
         }
     } else {
-        Stack.setChannel(1); LUTmaker(255, 0, 204);  // Magenta Hot
-        Stack.setChannel(2); LUTmaker(255, 218, 0);  // Yellow Hot
-        Stack.setChannel(3); LUTmaker(44, 254, 255);  // Cyan Hot
+        Stack.setChannel(1); run("Magenta Hot");
+        Stack.setChannel(2); run("Yellow Hot");
+        Stack.setChannel(3); run("Cyan Hot");
     }
     setOption('Changes', false);
     setBatchMode(false);
