@@ -2,7 +2,7 @@
 <stickToImageJ>
 <noGrid>
 <line>
- 
+
 <text><html><font color='black'><b> Custom Macro Bar
 
 <button>
@@ -182,106 +182,88 @@ function colorConversionAndSave() {
     outputDir = inputDir + 'conversion\\';
     File.makeDirectory(outputDir);
 
-    fileList = getFileList(inputDir);
-    
-    if (fileList.length == 0) {
-        exit('No images found in the selected directory.');
+    while (nImages > 0) {
+        close();
     }
 
+    fileList = getFileList(inputDir);
+
     for (i = 0; i < fileList.length; i++) {
-        if (endsWith(fileList[i], '.jpg') || endsWith(fileList[i], '.png') || endsWith(fileList[i], '.tif')) {
-            filePath = inputDir + fileList[i];
-            open(filePath);
-            
-            // 이미지가 열리지 않았을 경우 처리
-            if (nImages == 0) {
-                print('Failed to open image: ' + filePath);
-                continue;  // 다음 이미지로 넘어감
-            }
-            
-            applyHotLUTs();
+        filePath = inputDir + fileList[i];
+        open(filePath);
+        noiceLUTs();
 
-            title = getTitle();
-            dotIndex = lastIndexOf(title, '.');
-            if (dotIndex != -1) {
-                title = substring(title, 0, dotIndex);
-            }
-            savePath = outputDir + title + '_conversion.jpg';
-
-            saveAs('Jpeg', savePath);
-            close();
+        title = getTitle();
+        dotIndex = lastIndexOf(title, '.');
+        if (dotIndex != -1) {
+            title = substring(title, 0, dotIndex);
         }
+        savePath = outputDir + title + '_conversion.jpg';
+
+        saveAs('Jpeg', savePath);
+        close();
     }
 
     showMessage('Processing Complete', 'All images have been processed and saved in the conversion folder.');
 }
 
-// LUT 적용 함수 정의
-function applyHotLUTs() {
-    if (nImages == 0) exit("no image");
-    if (isKeyDown("shift") && bitDepth() != 24) {
+function LUTmaker(r, g, b) {
+    R = newArray(256);
+    G = newArray(256);
+    B = newArray(256);
+    for (i = 0; i < 256; i++) { 
+        R[i] = (r / 256) * (i + 1);
+        G[i] = (g / 256) * (i + 1);
+        B[i] = (b / 256) * (i + 1);
+    }
+    setLut(R, G, B);
+}
+
+function noiceLUTs() {
+    if (nImages == 0) exit('no image');
+    if (isKeyDown('shift') && bitDepth() != 24) {
         getDimensions(width, height, channels, slices, frames);
         if (channels == 2) {
-            Stack.setChannel(1); run("Magenta Hot");
-            Stack.setChannel(2); run("Cyan Hot");
+            Stack.setChannel(1); LUTmaker(255, 100, 0); // orange
+            Stack.setChannel(2); LUTmaker(0, 155, 255); // blue
         }
         if (channels == 3) {
-            Stack.setChannel(1); run("Magenta Hot");
-            Stack.setChannel(2); run("Yellow Hot");
-            Stack.setChannel(3); run("Cyan Hot");
+            Stack.setChannel(1); LUTmaker(255, 194, 0);
+            Stack.setChannel(2); LUTmaker(0, 255, 194);
+            Stack.setChannel(3); LUTmaker(194, 0, 255);
         }
     } else {
         RGBtoMYC();
     }
 }
 
-// RGB to MYC 변환 함수 정의
 function RGBtoMYC() {
-    showStatus("RGB to MYC");
-    setBatchMode(1);
+    showStatus('RGB to MYC');
+    setBatchMode(true);
     if (bitDepth() == 24) { // if RGB
         getDimensions(width, height, channels, slices, frames);
         if (selectionType() != -1) {
-            id = getImageID();
-            run("Copy");
             getSelectionBounds(x, y, width, height);
-            newImage("dup", "RGB", width, height, 1);
-            run("Paste");
-            run("Make Composite");
-            run("Remove Slice Labels");
-            Stack.setChannel(1); run("Magenta Hot");
-            Stack.setChannel(2); run("Yellow Hot");
-            Stack.setChannel(3); run("Cyan Hot");
-            run("Flatten");
-            run("Copy");
-            selectImage(id);
-            run("Paste");
-            run("Select None");
-        } else {
-            run("Duplicate...", "duplicate");
-            run("Make Composite");
-            run("Remove Slice Labels");
-            Stack.setChannel(1); run("Magenta Hot");
-            Stack.setChannel(2); run("Yellow Hot");
-            Stack.setChannel(3); run("Cyan Hot");
-            if (slices * frames == 1) {
-                Stack.setDisplayMode("color");
-                Stack.setDisplayMode("composite");
-                run("Stack to RGB");
-            }
+            makeRectangle(x, y, width, height);
+        }
+        run('Make Composite');
+        run('Remove Slice Labels');
+        Stack.setChannel(1); LUTmaker(128, 97, 0); resetMinAndMax();
+        Stack.setChannel(2); LUTmaker(0, 128, 97); resetMinAndMax();
+        Stack.setChannel(3); LUTmaker(97, 0, 128); resetMinAndMax();
+        if (slices * frames == 1) {
+            Stack.setDisplayMode('color');
+            Stack.setDisplayMode('composite');
+            run('Stack to RGB');
         }
     } else {
-        Stack.setChannel(1); run("Magenta Hot");
-        Stack.setChannel(2); run("Yellow Hot");
-        Stack.setChannel(3); run("Cyan Hot");
+        Stack.setChannel(1); LUTmaker(128, 97, 0);
+        Stack.setChannel(2); LUTmaker(0, 128, 97);
+        Stack.setChannel(3); LUTmaker(97, 0, 128);
     }
-    setOption("Changes", 0);
-    setBatchMode(0);
+    setOption('Changes', false);
+    setBatchMode(false);
 }
-
-
-
-
 
 // Split Channel 함수 정의
 function splitChannel() {
