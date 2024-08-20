@@ -217,7 +217,7 @@ function applyHotLUTs() {
         }
         if (channels == 3) {
             Stack.setChannel(1); run("Magenta Hot");
-            Stack.setChannel(2); run("Yellow Hot");
+            Stack.setChannel(2); run("Yellow");
             Stack.setChannel(3); run("Cyan Hot");
         }
     } else {
@@ -239,7 +239,7 @@ function RGBtoMYC() {
             run("Make Composite");
             run("Remove Slice Labels");
             Stack.setChannel(1); run("Magenta Hot");
-            Stack.setChannel(2); run("Yellow Hot");
+            Stack.setChannel(2); run("Yellow");
             Stack.setChannel(3); run("Cyan Hot");
             run("Flatten");
             run("Copy");
@@ -251,7 +251,7 @@ function RGBtoMYC() {
             run("Make Composite");
             run("Remove Slice Labels");
             Stack.setChannel(1); run("Magenta Hot");
-            Stack.setChannel(2); run("Yellow Hot");
+            Stack.setChannel(2); run("Yellow");
             Stack.setChannel(3); run("Cyan Hot");
             if (slices * frames == 1) {
                 Stack.setDisplayMode("color");
@@ -261,7 +261,7 @@ function RGBtoMYC() {
         }
     } else {
         Stack.setChannel(1); run("Magenta Hot");
-        Stack.setChannel(2); run("Yellow Hot");
+        Stack.setChannel(2); run("Yellow");
         Stack.setChannel(3); run("Cyan Hot");
     }
     setOption("Changes", 0);
