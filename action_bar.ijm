@@ -208,8 +208,8 @@ function colorConversionAndSave() {
 }
 
 function applyHotLUTs() {
-    if (nImages == 0) exit('no image');
-    if (isKeyDown('shift') && bitDepth() != 24) {
+    if (nImages == 0) exit("no image");
+    if (isKeyDown("shift") && bitDepth() != 24) {
         getDimensions(width, height, channels, slices, frames);
         if (channels == 2) {
             Stack.setChannel(1); run("Magenta Hot");
@@ -226,32 +226,48 @@ function applyHotLUTs() {
 }
 
 function RGBtoMYC() {
-    showStatus('RGB to MYC');
-    setBatchMode(true);
+    showStatus("RGB to MYC");
+    setBatchMode(1);
     if (bitDepth() == 24) { // if RGB
         getDimensions(width, height, channels, slices, frames);
         if (selectionType() != -1) {
+            id = getImageID();
+            run("Copy");
             getSelectionBounds(x, y, width, height);
-            makeRectangle(x, y, width, height);
-        }
-        run('Make Composite');
-        run('Remove Slice Labels');
-        Stack.setChannel(1); run("Magenta Hot");
-        Stack.setChannel(2); run("Yellow Hot");
-        Stack.setChannel(3); run("Cyan Hot");
-        if (slices * frames == 1) {
-            Stack.setDisplayMode('color');
-            Stack.setDisplayMode('composite');
-            run('Stack to RGB');
+            newImage("dup", "RGB", width, height, 1);
+            run("Paste");
+            run("Make Composite");
+            run("Remove Slice Labels");
+            Stack.setChannel(1); run("Magenta Hot");
+            Stack.setChannel(2); run("Yellow Hot");
+            Stack.setChannel(3); run("Cyan Hot");
+            run("Flatten");
+            run("Copy");
+            selectImage(id);
+            run("Paste");
+            run("Select None");
+        } else {
+            run("Duplicate...", "duplicate");
+            run("Make Composite");
+            run("Remove Slice Labels");
+            Stack.setChannel(1); run("Magenta Hot");
+            Stack.setChannel(2); run("Yellow Hot");
+            Stack.setChannel(3); run("Cyan Hot");
+            if (slices * frames == 1) {
+                Stack.setDisplayMode("color");
+                Stack.setDisplayMode("composite");
+                run("Stack to RGB");
+            }
         }
     } else {
         Stack.setChannel(1); run("Magenta Hot");
         Stack.setChannel(2); run("Yellow Hot");
         Stack.setChannel(3); run("Cyan Hot");
     }
-    setOption('Changes', false);
-    setBatchMode(false);
+    setOption("Changes", 0);
+    setBatchMode(0);
 }
+
 
 
 
