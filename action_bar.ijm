@@ -2,7 +2,7 @@
 <stickToImageJ>
 <noGrid>
 <line>
-
+ 
 <text><html><font color='black'><b> Custom Macro Bar
 
 <button>
