@@ -182,31 +182,41 @@ function colorConversionAndSave() {
     outputDir = inputDir + 'conversion\\';
     File.makeDirectory(outputDir);
 
-    while (nImages > 0) {
-        close();
+    fileList = getFileList(inputDir);
+    
+    if (fileList.length == 0) {
+        exit('No images found in the selected directory.');
     }
 
-    fileList = getFileList(inputDir);
-
     for (i = 0; i < fileList.length; i++) {
-        filePath = inputDir + fileList[i];
-        open(filePath);
-        applyHotLUTs();
+        if (endsWith(fileList[i], '.jpg') || endsWith(fileList[i], '.png') || endsWith(fileList[i], '.tif')) {
+            filePath = inputDir + fileList[i];
+            open(filePath);
+            
+            // 이미지가 열리지 않았을 경우 처리
+            if (nImages == 0) {
+                print('Failed to open image: ' + filePath);
+                continue;  // 다음 이미지로 넘어감
+            }
+            
+            applyHotLUTs();
 
-        title = getTitle();
-        dotIndex = lastIndexOf(title, '.');
-        if (dotIndex != -1) {
-            title = substring(title, 0, dotIndex);
+            title = getTitle();
+            dotIndex = lastIndexOf(title, '.');
+            if (dotIndex != -1) {
+                title = substring(title, 0, dotIndex);
+            }
+            savePath = outputDir + title + '_conversion.jpg';
+
+            saveAs('Jpeg', savePath);
+            close();
         }
-        savePath = outputDir + title + '_conversion.jpg';
-
-        saveAs('Jpeg', savePath);
-        close();
     }
 
     showMessage('Processing Complete', 'All images have been processed and saved in the conversion folder.');
 }
 
+// LUT 적용 함수 정의
 function applyHotLUTs() {
     if (nImages == 0) exit("no image");
     if (isKeyDown("shift") && bitDepth() != 24) {
@@ -225,6 +235,7 @@ function applyHotLUTs() {
     }
 }
 
+// RGB to MYC 변환 함수 정의
 function RGBtoMYC() {
     showStatus("RGB to MYC");
     setBatchMode(1);
@@ -267,6 +278,7 @@ function RGBtoMYC() {
     setOption("Changes", 0);
     setBatchMode(0);
 }
+
 
 
 
