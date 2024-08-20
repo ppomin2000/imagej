@@ -270,7 +270,6 @@ function RGBtoMYC() {
 
 
 
-
 // Split Channel 함수 정의
 function splitChannel() {
     inputFile = File.openDialog('Select an image file');
