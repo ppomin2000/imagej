@@ -48,7 +48,7 @@ arg=mergeChannel();
 <separator>
 
 <button>
-label=<html><font color='black'><b> conversionHotColor
+label=<html><font color='black'><b> conversion HotColor
 bgcolor=#e77471
 arg=conversionHotColor();
 <separator>
@@ -314,7 +314,7 @@ function conversionHotColor() {
             continue;
         }
 
-        applyHotLUTs();
+        applyHotColorLUTs();
 
         title = getTitle();
         dotIndex = lastIndexOf(title, '.');
@@ -330,26 +330,75 @@ function conversionHotColor() {
     showMessage('HOT Color Conversion Complete', 'All images have been processed and saved in the hot_conversion folder.');
 }
 
-// applyHotLUTs 함수 정의
-function applyHotLUTs() {
+// applyHotColorLUTs 함수 정의
+function applyHotColorLUTs() {
     if (nImages == 0) exit("no image");
     
     getDimensions(width, height, channels, slices, frames);
-    
-    if (channels >= 1) {
-        Stack.setChannel(1);
-        run("Magenta Hot");
+
+    if (bitDepth() == 24) { // RGB 이미지인 경우
+        if (channels >= 1) {
+            Stack.setChannel(1);
+            run("Magenta Hot");
+        }
+        
+        if (channels >= 2) {
+            Stack.setChannel(2);
+            run("Yellow Hot");
+        }
+        
+        if (channels >= 3) {
+            Stack.setChannel(3);
+            run("Cyan Hot");
+        }
+    } else {
+        RGBtoHotMYC();
     }
-    
-    if (channels >= 2) {
-        Stack.setChannel(2);
-        run("Yellow Hot");
+}
+
+// RGB to Magenta Hot, Yellow Hot, Cyan Hot 변환 함수 정의
+function RGBtoHotMYC() {
+    showStatus("RGB to MYC");
+    setBatchMode(1);
+
+    if (bitDepth() == 24) { // RGB 이미지인 경우
+        getDimensions(width, height, channels, slices, frames);
+        if (selectionType() != -1) {
+            id = getImageID();
+            run("Copy");
+            getSelectionBounds(x, y, width, height);
+            newImage("dup", "RGB", width, height, 1);
+            run("Paste");
+            run("Make Composite");
+            run("Remove Slice Labels");
+            Stack.setChannel(1); run("Magenta Hot");
+            Stack.setChannel(2); run("Yellow Hot");
+            Stack.setChannel(3); run("Cyan Hot");
+            run("Flatten");
+            run("Copy");
+            selectImage(id);
+            run("Paste");
+            run("Select None");
+        } else {
+            run("Duplicate...", "duplicate");
+            run("Make Composite");
+            run("Remove Slice Labels");
+            Stack.setChannel(1); run("Magenta Hot");
+            Stack.setChannel(2); run("Yellow Hot");
+            Stack.setChannel(3); run("Cyan Hot");
+            if (slices * frames == 1) {
+                Stack.setDisplayMode("color");
+                Stack.setDisplayMode("composite");
+                run("Stack to RGB");
+            }
+        }
+    } else { // 비-RGB 이미지인 경우
+        Stack.setChannel(1); run("Magenta Hot");
+        Stack.setChannel(2); run("Yellow Hot");
+        Stack.setChannel(3); run("Cyan Hot");
     }
-    
-    if (channels >= 3) {
-        Stack.setChannel(3);
-        run("Cyan Hot");
-    }
+    setOption("Changes", 0);
+    setBatchMode(0);
 }
 
 
