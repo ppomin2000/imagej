@@ -301,10 +301,25 @@ function conversionHotColor() {
 
     fileList = getFileList(inputDir);
 
+    if (fileList.length == 0) {
+        exit('No images found in the selected directory.');
+    }
+
     for (i = 0; i < fileList.length; i++) {
         filePath = inputDir + fileList[i];
+        
+        // 파일 경로를 출력하여 디버깅
+        print("Attempting to open file: " + filePath);
+        
         open(filePath);
-        applyHotColorLUTs();
+
+        // 이미지가 제대로 열렸는지 확인
+        if (nImages == 0) {
+            print("Failed to open image: " + filePath);
+            continue;
+        }
+
+        applyHotLUTs();
 
         title = getTitle();
         dotIndex = lastIndexOf(title, '.');
@@ -320,67 +335,69 @@ function conversionHotColor() {
     showMessage('HOT Color Conversion Complete', 'All images have been processed and saved in the hot_conversion folder.');
 }
 
-// applyHotColorLUTs 함수 정의
-function applyHotColorLUTs() {
+// HOT LUT 적용 함수 정의
+function applyHotLUTs() {
     if (nImages == 0) exit("no image");
-
-    if (bitDepth() == 24) { // RGB 이미지인 경우
+    
+    if (bitDepth() != 24) {
         getDimensions(width, height, channels, slices, frames);
+        if (channels == 2) {
+            Stack.setChannel(1); LUTmakerHot(255, 0, 204); // Magenta Hot
+            Stack.setChannel(2); LUTmakerHot(44, 254, 255); // Cyan Hot
+        }
         if (channels == 3) {
-            Stack.setChannel(1); run("Magenta Hot");
-            Stack.setChannel(2); run("Yellow Hot");
-            Stack.setChannel(3); run("Cyan Hot");
+            Stack.setChannel(1); LUTmakerHot(255, 0, 204); // Magenta Hot
+            Stack.setChannel(2); LUTmakerHot(255, 218, 0); // Yellow Hot
+            Stack.setChannel(3); LUTmakerHot(44, 254, 255); // Cyan Hot
         }
     } else {
         RGBtoHotMYC();
     }
 }
 
-// RGB to Magenta Hot, Yellow Hot, Cyan Hot 변환 함수 정의
-function RGBtoHotMYC() {
-    showStatus("RGB to Hot MYC");
-    setBatchMode(1);
+// HOT LUT을 만드는 함수 정의
+function LUTmakerHot(r, g, b) {
+    R = newArray(256);
+    G = newArray(256);
+    B = newArray(256);
+    for (i = 0; i < 256; i++) { 
+        R[i] = (r / 256) * (i + 1);
+        G[i] = (g / 256) * (i + 1);
+        B[i] = (b / 256) * (i + 1);
+    }
+    setLut(R, G, B);
+}
 
+// RGB to Hot MYC 변환 함수 정의
+function RGBtoHotMYC() {
+    showStatus('RGB to Hot MYC');
+    setBatchMode(true);
+    
     if (bitDepth() == 24) { // if RGB
         getDimensions(width, height, channels, slices, frames);
         if (selectionType() != -1) {
-            id = getImageID();
-            run("Copy");
             getSelectionBounds(x, y, width, height);
-            newImage("dup", "RGB", width, height, 1);
-            run("Paste");
-            run("Make Composite");
-            run("Remove Slice Labels");
-            Stack.setChannel(1); run("Magenta Hot");
-            Stack.setChannel(2); run("Yellow Hot");
-            Stack.setChannel(3); run("Cyan Hot");
-            run("Flatten");
-            run("Copy");
-            selectImage(id);
-            run("Paste");
-            run("Select None");
-        } else {
-            run("Duplicate...", "duplicate");
-            run("Make Composite");
-            run("Remove Slice Labels");
-            Stack.setChannel(1); run("Magenta Hot");
-            Stack.setChannel(2); run("Yellow Hot");
-            Stack.setChannel(3); run("Cyan Hot");
-            if (slices * frames == 1) {
-                Stack.setDisplayMode("color");
-                Stack.setDisplayMode("composite");
-                run("Stack to RGB");
-            }
+            makeRectangle(x, y, width, height);
         }
-    } else { // 비-RGB 이미지인 경우
-        Stack.setChannel(1); run("Magenta Hot");
-        Stack.setChannel(2); run("Yellow Hot");
-        Stack.setChannel(3); run("Cyan Hot");
+        run('Make Composite');
+        run('Remove Slice Labels');
+        Stack.setChannel(1); LUTmakerHot(255, 0, 204); // Magenta Hot
+        Stack.setChannel(2); LUTmakerHot(255, 218, 0); // Yellow Hot
+        Stack.setChannel(3); LUTmakerHot(44, 254, 255); // Cyan Hot
+        if (slices * frames == 1) {
+            Stack.setDisplayMode('color');
+            Stack.setDisplayMode('composite');
+            run('Stack to RGB');
+        }
+    } else {
+        Stack.setChannel(1); LUTmakerHot(255, 0, 204); // Magenta Hot
+        Stack.setChannel(2); LUTmakerHot(255, 218, 0); // Yellow Hot
+        Stack.setChannel(3); LUTmakerHot(44, 254, 255); // Cyan Hot
     }
-
-    setOption("Changes", 0);
-    setBatchMode(0);
+    setOption('Changes', false);
+    setBatchMode(false);
 }
+
 
 
 
