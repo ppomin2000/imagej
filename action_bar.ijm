@@ -342,30 +342,17 @@ function applyHotLUTs() {
     if (bitDepth() != 24) {
         getDimensions(width, height, channels, slices, frames);
         if (channels == 2) {
-            Stack.setChannel(1); LUTmakerHot(255, 0, 204); // Magenta Hot
-            Stack.setChannel(2); LUTmakerHot(44, 254, 255); // Cyan Hot
+            Stack.setChannel(1); run("Magenta Hot");
+            Stack.setChannel(2); run("Cyan Hot");
         }
         if (channels == 3) {
-            Stack.setChannel(1); LUTmakerHot(255, 0, 204); // Magenta Hot
-            Stack.setChannel(2); LUTmakerHot(255, 218, 0); // Yellow Hot
-            Stack.setChannel(3); LUTmakerHot(44, 254, 255); // Cyan Hot
+            Stack.setChannel(1); run("Magenta Hot");
+            Stack.setChannel(2); run("Yellow Hot");
+            Stack.setChannel(3); run("Cyan Hot");
         }
     } else {
         RGBtoHotMYC();
     }
-}
-
-// HOT LUT을 만드는 함수 정의
-function LUTmakerHot(r, g, b) {
-    R = newArray(256);
-    G = newArray(256);
-    B = newArray(256);
-    for (i = 0; i < 256; i++) { 
-        R[i] = (r / 256) * (i + 1);
-        G[i] = (g / 256) * (i + 1);
-        B[i] = (b / 256) * (i + 1);
-    }
-    setLut(R, G, B);
 }
 
 // RGB to Hot MYC 변환 함수 정의
@@ -381,18 +368,18 @@ function RGBtoHotMYC() {
         }
         run('Make Composite');
         run('Remove Slice Labels');
-        Stack.setChannel(1); LUTmakerHot(255, 0, 204); // Magenta Hot
-        Stack.setChannel(2); LUTmakerHot(255, 218, 0); // Yellow Hot
-        Stack.setChannel(3); LUTmakerHot(44, 254, 255); // Cyan Hot
+        Stack.setChannel(1); run("Magenta Hot");
+        Stack.setChannel(2); run("Yellow Hot");
+        Stack.setChannel(3); run("Cyan Hot");
         if (slices * frames == 1) {
             Stack.setDisplayMode('color');
             Stack.setDisplayMode('composite');
             run('Stack to RGB');
         }
     } else {
-        Stack.setChannel(1); LUTmakerHot(255, 0, 204); // Magenta Hot
-        Stack.setChannel(2); LUTmakerHot(255, 218, 0); // Yellow Hot
-        Stack.setChannel(3); LUTmakerHot(44, 254, 255); // Cyan Hot
+        Stack.setChannel(1); run("Magenta Hot");
+        Stack.setChannel(2); run("Yellow Hot");
+        Stack.setChannel(3); run("Cyan Hot");
     }
     setOption('Changes', false);
     setBatchMode(false);
