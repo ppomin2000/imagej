@@ -188,9 +188,24 @@ function colorConversionAndSave() {
 
     fileList = getFileList(inputDir);
 
+    if (fileList.length == 0) {
+        exit('No images found in the selected directory.');
+    }
+
     for (i = 0; i < fileList.length; i++) {
         filePath = inputDir + fileList[i];
+        
+        // 파일 경로를 출력하여 디버깅
+        print("Attempting to open file: " + filePath);
+        
         open(filePath);
+
+        // 이미지가 제대로 열렸는지 확인
+        if (nImages == 0) {
+            print("Failed to open image: " + filePath);
+            continue;
+        }
+
         noiceLUTs();
 
         title = getTitle();
@@ -228,9 +243,9 @@ function noiceLUTs() {
             Stack.setChannel(2); LUTmaker(0, 155, 255); // blue
         }
         if (channels == 3) {
-            Stack.setChannel(1); LUTmaker(255, 194, 0);
-            Stack.setChannel(2); LUTmaker(0, 255, 194);
-            Stack.setChannel(3); LUTmaker(194, 0, 255);
+            Stack.setChannel(1); LUTmaker(255, 0, 255); // Magenta
+            Stack.setChannel(2); LUTmaker(255, 255, 0); // Yellow
+            Stack.setChannel(3); LUTmaker(0, 255, 255); // Cyan
         }
     } else {
         RGBtoMYC();
@@ -248,22 +263,23 @@ function RGBtoMYC() {
         }
         run('Make Composite');
         run('Remove Slice Labels');
-        Stack.setChannel(1); LUTmaker(128, 97, 0); resetMinAndMax();
-        Stack.setChannel(2); LUTmaker(0, 128, 97); resetMinAndMax();
-        Stack.setChannel(3); LUTmaker(97, 0, 128); resetMinAndMax();
+        Stack.setChannel(1); LUTmaker(255, 0, 255); // Magenta
+        Stack.setChannel(2); LUTmaker(255, 255, 0); // Yellow
+        Stack.setChannel(3); LUTmaker(0, 255, 255); // Cyan
         if (slices * frames == 1) {
             Stack.setDisplayMode('color');
             Stack.setDisplayMode('composite');
             run('Stack to RGB');
         }
     } else {
-        Stack.setChannel(1); LUTmaker(128, 97, 0);
-        Stack.setChannel(2); LUTmaker(0, 128, 97);
-        Stack.setChannel(3); LUTmaker(97, 0, 128);
+        Stack.setChannel(1); LUTmaker(255, 0, 255); // Magenta
+        Stack.setChannel(2); LUTmaker(255, 255, 0); // Yellow
+        Stack.setChannel(3); LUTmaker(0, 255, 255); // Cyan
     }
     setOption('Changes', false);
     setBatchMode(false);
 }
+
 
 // Split Channel 함수 정의
 function splitChannel() {
