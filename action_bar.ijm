@@ -314,7 +314,12 @@ function conversionHotColor() {
             continue;
         }
 
-        applyHotColorLUTs();
+        // RGB 이미지 처리
+        if (bitDepth() == 24) {
+            splitChannelsAndApplyHotLUTs();
+        } else {
+            applyHotColorLUTs();  // 비-RGB 이미지인 경우 처리
+        }
 
         title = getTitle();
         dotIndex = lastIndexOf(title, '.');
@@ -330,76 +335,47 @@ function conversionHotColor() {
     showMessage('HOT Color Conversion Complete', 'All images have been processed and saved in the hot_conversion folder.');
 }
 
-// applyHotColorLUTs 함수 정의
+// RGB 이미지 채널 분리 및 Hot LUT 적용 후 병합 함수
+function splitChannelsAndApplyHotLUTs() {
+    run("Split Channels");
+    selectWindow("C1-" + getTitle()); // Red Channel
+    run("Magenta Hot");
+    titleC1 = getTitle();
+
+    selectWindow("C2-" + getTitle()); // Green Channel
+    run("Yellow Hot");
+    titleC2 = getTitle();
+
+    selectWindow("C3-" + getTitle()); // Blue Channel
+    run("Cyan Hot");
+    titleC3 = getTitle();
+
+    // 채널 병합
+    run("Merge Channels...", "c1=[" + titleC1 + "] c2=[" + titleC2 + "] c3=[" + titleC3 + "] create");
+}
+
+// applyHotColorLUTs 함수 정의 (비-RGB 이미지용)
 function applyHotColorLUTs() {
     if (nImages == 0) exit("no image");
     
     getDimensions(width, height, channels, slices, frames);
 
-    if (bitDepth() == 24) { // RGB 이미지인 경우
-        if (channels >= 1) {
-            Stack.setChannel(1);
-            run("Magenta");
-        }
-        
-        if (channels >= 2) {
-            Stack.setChannel(2);
-            run("Yellow Hot");
-        }
-        
-        if (channels >= 3) {
-            Stack.setChannel(3);
-            run("Cyan Hot");
-        }
-    } else {
-        RGBtoHotMYC();
+    if (channels >= 1) {
+        Stack.setChannel(1);
+        run("Magenta Hot");
+    }
+    
+    if (channels >= 2) {
+        Stack.setChannel(2);
+        run("Yellow Hot");
+    }
+    
+    if (channels >= 3) {
+        Stack.setChannel(3);
+        run("Cyan Hot");
     }
 }
 
-// RGB to Magenta, Yellow Hot, Cyan Hot 변환 함수 정의
-function RGBtoHotMYC() {
-    showStatus("RGB to MYC");
-    setBatchMode(1);
-
-    if (bitDepth() == 24) { // RGB 이미지인 경우
-        getDimensions(width, height, channels, slices, frames);
-        if (selectionType() != -1) {
-            id = getImageID();
-            run("Copy");
-            getSelectionBounds(x, y, width, height);
-            newImage("dup", "RGB", width, height, 1);
-            run("Paste");
-            run("Make Composite");
-            run("Remove Slice Labels");
-            Stack.setChannel(1); run("Magenta");
-            Stack.setChannel(2); run("Yellow Hot");
-            Stack.setChannel(3); run("Cyan Hot");
-            run("Flatten");
-            run("Copy");
-            selectImage(id);
-            run("Paste");
-            run("Select None");
-        } else {
-            run("Duplicate...", "duplicate");
-            run("Make Composite");
-            run("Remove Slice Labels");
-            Stack.setChannel(1); run("Magenta");
-            Stack.setChannel(2); run("Yellow Hot");
-            Stack.setChannel(3); run("Cyan Hot");
-            if (slices * frames == 1) {
-                Stack.setDisplayMode("color");
-                Stack.setDisplayMode("composite");
-                run("Stack to RGB");
-            }
-        }
-    } else { // 비-RGB 이미지인 경우
-        Stack.setChannel(1); run("Magenta");
-        Stack.setChannel(2); run("Yellow Hot");
-        Stack.setChannel(3); run("Cyan Hot");
-    }
-    setOption("Changes", 0);
-    setBatchMode(0);
-}
 
 
 // Split Channel 함수 정의
