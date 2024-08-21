@@ -339,7 +339,7 @@ function applyHotColorLUTs() {
     if (bitDepth() == 24) { // RGB 이미지인 경우
         if (channels >= 1) {
             Stack.setChannel(1);
-            run("Magenta Hot");
+            run("Magenta");
         }
         
         if (channels >= 2) {
@@ -356,7 +356,7 @@ function applyHotColorLUTs() {
     }
 }
 
-// RGB to Magenta Hot, Yellow Hot, Cyan Hot 변환 함수 정의
+// RGB to Magenta, Yellow Hot, Cyan Hot 변환 함수 정의
 function RGBtoHotMYC() {
     showStatus("RGB to MYC");
     setBatchMode(1);
