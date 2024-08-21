@@ -371,7 +371,7 @@ function RGBtoHotMYC() {
             run("Paste");
             run("Make Composite");
             run("Remove Slice Labels");
-            Stack.setChannel(1); run("Magenta Hot");
+            Stack.setChannel(1); run("Magenta");
             Stack.setChannel(2); run("Yellow Hot");
             Stack.setChannel(3); run("Cyan Hot");
             run("Flatten");
@@ -383,7 +383,7 @@ function RGBtoHotMYC() {
             run("Duplicate...", "duplicate");
             run("Make Composite");
             run("Remove Slice Labels");
-            Stack.setChannel(1); run("Magenta Hot");
+            Stack.setChannel(1); run("Magenta");
             Stack.setChannel(2); run("Yellow Hot");
             Stack.setChannel(3); run("Cyan Hot");
             if (slices * frames == 1) {
@@ -393,7 +393,7 @@ function RGBtoHotMYC() {
             }
         }
     } else { // 비-RGB 이미지인 경우
-        Stack.setChannel(1); run("Magenta Hot");
+        Stack.setChannel(1); run("Magenta");
         Stack.setChannel(2); run("Yellow Hot");
         Stack.setChannel(3); run("Cyan Hot");
     }
