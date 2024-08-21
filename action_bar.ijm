@@ -53,7 +53,6 @@ bgcolor=#e77471
 arg=conversionHotColor();
 <separator>
 
-
 <button>
 label=<html><font color='black'><b> X
 bgcolor=#ff989c
