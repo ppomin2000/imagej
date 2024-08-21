@@ -180,6 +180,113 @@ function imageCrop() {
     roiManager('Delete');
 }
 
+// Color Conversion and Save 함수 정의
+function colorConversionAndSave() {
+    inputDir = getDirectory('Choose a Directory');
+    if (inputDir == '') exit('No directory selected.');
+
+    outputDir = inputDir + 'conversion\\';
+    File.makeDirectory(outputDir);
+
+    while (nImages > 0) {
+        close();
+    }
+
+    fileList = getFileList(inputDir);
+
+    if (fileList.length == 0) {
+        exit('No images found in the selected directory.');
+    }
+
+    for (i = 0; i < fileList.length; i++) {
+        filePath = inputDir + fileList[i];
+        
+        // 파일 경로를 출력하여 디버깅
+        print("Attempting to open file: " + filePath);
+        
+        open(filePath);
+
+        // 이미지가 제대로 열렸는지 확인
+        if (nImages == 0) {
+            print("Failed to open image: " + filePath);
+            continue;
+        }
+
+        noiceLUTs();
+
+        title = getTitle();
+        dotIndex = lastIndexOf(title, '.');
+        if (dotIndex != -1) {
+            title = substring(title, 0, dotIndex);
+        }
+        savePath = outputDir + title + '_conversion.jpg';
+
+        saveAs('Jpeg', savePath);
+        close();
+    }
+
+    showMessage('Processing Complete', 'All images have been processed and saved in the conversion folder.');
+}
+
+function LUTmaker(r, g, b) {
+    R = newArray(256);
+    G = newArray(256);
+    B = newArray(256);
+    for (i = 0; i < 256; i++) { 
+        R[i] = (r / 256) * (i + 1);
+        G[i] = (g / 256) * (i + 1);
+        B[i] = (b / 256) * (i + 1);
+    }
+    setLut(R, G, B);
+}
+
+function noiceLUTs() {
+    if (nImages == 0) exit('no image');
+    if (isKeyDown('shift') && bitDepth() != 24) {
+        getDimensions(width, height, channels, slices, frames);
+        if (channels == 2) {
+            Stack.setChannel(1); LUTmaker(255, 100, 0); // orange
+            Stack.setChannel(2); LUTmaker(0, 155, 255); // blue
+        }
+        if (channels == 3) {
+            Stack.setChannel(1); LUTmaker(255, 0, 255); // Magenta
+            Stack.setChannel(2); LUTmaker(255, 255, 0); // Yellow
+            Stack.setChannel(3); LUTmaker(0, 255, 255); // Cyan
+        }
+    } else {
+        RGBtoMYC();
+    }
+}
+
+function RGBtoMYC() {
+    showStatus('RGB to MYC');
+    setBatchMode(true);
+    if (bitDepth() == 24) { // if RGB
+        getDimensions(width, height, channels, slices, frames);
+        if (selectionType() != -1) {
+            getSelectionBounds(x, y, width, height);
+            makeRectangle(x, y, width, height);
+        }
+        run('Make Composite');
+        run('Remove Slice Labels');
+        Stack.setChannel(1); LUTmaker(255, 0, 255); // Magenta
+        Stack.setChannel(2); LUTmaker(255, 255, 0); // Yellow
+        Stack.setChannel(3); LUTmaker(0, 255, 255); // Cyan
+        if (slices * frames == 1) {
+            Stack.setDisplayMode('color');
+            Stack.setDisplayMode('composite');
+            run('Stack to RGB');
+        }
+    } else {
+        Stack.setChannel(1); LUTmaker(255, 0, 255); // Magenta
+        Stack.setChannel(2); LUTmaker(255, 255, 0); // Yellow
+        Stack.setChannel(3); LUTmaker(0, 255, 255); // Cyan
+    }
+    setOption('Changes', false);
+    setBatchMode(false);
+}
+
+
 // Conversion Hot Color 함수 정의
 function conversionHotColor() {
     inputDir = getDirectory('Choose a Directory');
@@ -274,6 +381,7 @@ function RGBtoHotMYC() {
     setOption("Changes", 0);
     setBatchMode(0);
 }
+
 
 
 
