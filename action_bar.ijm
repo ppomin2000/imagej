@@ -48,6 +48,13 @@ arg=mergeChannel();
 <separator>
 
 <button>
+label=<html><font color='black'><b> conversionHotColor
+bgcolor=#e77471
+arg=conversionHotColor();
+<separator>
+
+
+<button>
 label=<html><font color='black'><b> X
 bgcolor=#ff989c
 arg=close();
@@ -278,6 +285,72 @@ function RGBtoMYC() {
     }
     setOption('Changes', false);
     setBatchMode(false);
+}
+
+
+// Conversion Hot Color 함수 정의
+function conversionHotColor() {
+    inputDir = getDirectory('Choose a Directory');
+    if (inputDir == '') exit('No directory selected.');
+
+    outputDir = inputDir + 'hot_conversion\\';
+    File.makeDirectory(outputDir);
+
+    while (nImages > 0) {
+        close();
+    }
+
+    fileList = getFileList(inputDir);
+
+    if (fileList.length == 0) {
+        exit('No images found in the selected directory.');
+    }
+
+    for (i = 0; i < fileList.length; i++) {
+        filePath = inputDir + fileList[i];
+        open(filePath);
+
+        if (nImages == 0) {
+            print('Failed to open image: ' + filePath);
+            continue;
+        }
+
+        applyHotLUTs();
+
+        title = getTitle();
+        dotIndex = lastIndexOf(title, '.');
+        if (dotIndex != -1) {
+            title = substring(title, 0, dotIndex);
+        }
+        savePath = outputDir + title + '_hot_conversion.jpg';
+
+        saveAs('Jpeg', savePath);
+        close();
+    }
+
+    showMessage('HOT Color Conversion Complete', 'All images have been processed and saved in the hot_conversion folder.');
+}
+
+// applyHotLUTs 함수 정의
+function applyHotLUTs() {
+    if (nImages == 0) exit("no image");
+    
+    getDimensions(width, height, channels, slices, frames);
+    
+    if (channels >= 1) {
+        Stack.setChannel(1);
+        run("Magenta Hot");
+    }
+    
+    if (channels >= 2) {
+        Stack.setChannel(2);
+        run("Yellow Hot");
+    }
+    
+    if (channels >= 3) {
+        Stack.setChannel(3);
+        run("Cyan Hot");
+    }
 }
 
 
