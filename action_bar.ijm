@@ -16,7 +16,7 @@ label=<html><font color='black'><b> Image Crop
 bgcolor=#b48aff
 arg=imageCrop();
 <separator>
-
+ 
 <button>
 label=<html><font color='black'><b> Color Conversion and Save
 bgcolor=#60c1ff
