@@ -411,7 +411,7 @@ function splitChannel() {
 
     open(filePath);
     
-    // 파일 확장자에 따라 TIFF 또는 JPEG 형식을 열지만 결과는 모두 JPG로 저장
+    // TIFF 또는 JPEG 파일을 열고 결과는 JPG로 저장
     extension = getExtension(filePath);
     
     if (extension == "tiff" || extension == "tif" || extension == "jpg" || extension == "jpeg") {
@@ -427,41 +427,41 @@ function splitChannel() {
     }
 
     run('Split Channels');
-    saveChannel('C1-' + fileName + '.jpg', outputDir + fileName + '_R.jpg');
-    saveChannel('C2-' + fileName + '.jpg', outputDir + fileName + '_G.jpg');
-    saveChannel('C3-' + fileName + '.jpg', outputDir + fileName + '_B.jpg');
+    saveChannel('C1', outputDir + fileName + '_R.jpg');
+    saveChannel('C2', outputDir + fileName + '_G.jpg');
+    saveChannel('C3', outputDir + fileName + '_B.jpg');
     run('Close All');
 
     // R + G Merge
     open(outputDir + fileName + '_R.jpg');
     run('RGB Color');
-    rename('C1-' + fileName + '.jpg');
+    rename('C1-' + fileName);
     open(outputDir + fileName + '_G.jpg');
     run('RGB Color');
-    rename('C2-' + fileName + '.jpg');
-    run('Merge Channels...', 'c1=[C1-' + fileName + '.jpg] c2=[C2-' + fileName + '.jpg] create');
+    rename('C2-' + fileName);
+    run('Merge Channels...', 'c1=[C1-' + fileName + '] c2=[C2-' + fileName + '] create');
     saveAs('Jpeg', outputDir + fileName + '_R+G.jpg');
     run('Close All');
 
     // R + B Merge
     open(outputDir + fileName + '_R.jpg');
     run('RGB Color');
-    rename('C1-' + fileName + '.jpg');
+    rename('C1-' + fileName);
     open(outputDir + fileName + '_B.jpg');
     run('RGB Color');
-    rename('C3-' + fileName + '.jpg');
-    run('Merge Channels...', 'c1=[C1-' + fileName + '.jpg] c3=[C3-' + fileName + '.jpg] create');
+    rename('C3-' + fileName);
+    run('Merge Channels...', 'c1=[C1-' + fileName + '] c3=[C3-' + fileName + '] create');
     saveAs('Jpeg', outputDir + fileName + '_R+B.jpg');
     run('Close All');
 
     // G + B Merge
     open(outputDir + fileName + '_G.jpg');
     run('RGB Color');
-    rename('C2-' + fileName + '.jpg');
+    rename('C2-' + fileName);
     open(outputDir + fileName + '_B.jpg');
     run('RGB Color');
-    rename('C3-' + fileName + '.jpg');
-    run('Merge Channels...', 'c2=[C2-' + fileName + '.jpg] c3=[C3-' + fileName + '.jpg] create');
+    rename('C3-' + fileName);
+    run('Merge Channels...', 'c2=[C2-' + fileName + '] c3=[C3-' + fileName + '] create');
     saveAs('Jpeg', outputDir + fileName + '_G+B.jpg');
     run('Close All');
 }
@@ -476,6 +476,7 @@ function saveChannel(channelName, outputFilePath) {
     selectWindow(channelName);
     saveAs('Jpeg', outputFilePath);
 }
+
 
 
 function waitForDirectory(path) {
