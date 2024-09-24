@@ -24,7 +24,7 @@ arg=colorConversionAndSave();
 <separator>
 
 <button>
-label=<html><font color='black'><b> Split Channel
+label=<html><font color='black'><b> Split Channel2
 bgcolor=#ffd03e
 arg=splitChannel();
 <separator>
@@ -400,7 +400,7 @@ function splitChannel() {
     fileDir = getParent(filePath);
     fileName = getFileNameWithoutExtension(filePath);
     outputDir = fileDir + File.separator + fileName + File.separator;
-    
+
     if (!File.exists(outputDir)) {
         success = File.makeDirectory(outputDir);
         if (!success) {
@@ -408,22 +408,17 @@ function splitChannel() {
         }
     }
 
-    // 파일 확장자 가져오기
-    extension = getExtension(filePath);
-    
-    // tif 파일이면 jpg로 변환하여 저장
-    if (extension == "tif" || extension == "tiff") {
-        open(filePath);
+    // tif 파일이면 jpg로 변환 후 처리
+    if (endsWith(filePath, ".tif") || endsWith(filePath, ".tiff")) {
+        open(filePath);  // tif 파일 열기
         originalSavePath = outputDir + fileName + '_original.jpg';
-        saveAs('Jpeg', originalSavePath);
-        close(); // tif 파일을 닫음
-        filePath = originalSavePath; // 이후에 jpg 파일을 처리하도록 경로 변경
+        saveAs('Jpeg', originalSavePath);  // jpg로 변환 후 저장
+        filePath = originalSavePath;  // 이후 작업에서 jpg 파일을 사용하도록 filePath 업데이트
+    } else {
+        open(filePath);  // tif 파일이 아닌 경우 원본 파일 그대로 열기
+        originalSavePath = outputDir + fileName + '_original.jpg';
+        saveAs('Jpeg', originalSavePath);  // jpg로 저장
     }
-
-    // JPG 파일을 열고 처리
-    open(filePath);
-    originalSavePath = outputDir + fileName + '_original.jpg';
-    saveAs('Jpeg', originalSavePath);
 
     imageType = getInfo('image.type');
     if (imageType != 'composite') {
@@ -472,6 +467,7 @@ function splitChannel() {
     saveAs('Jpeg', outputDir + fileName + '_G+B.jpg');
     run('Close All');
 }
+
 
 // 파일 확장자 추출 함수
 function getExtension(filePath) {
