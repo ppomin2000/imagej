@@ -388,7 +388,6 @@ function RGBtoHotMYC() {
 
 
 
-
 // Split Channel 함수 정의
 function splitChannel() {
     inputFile = File.openDialog('Select an image file');
@@ -428,48 +427,49 @@ function splitChannel() {
 
     run('Split Channels');
 
-    // 각 채널 창을 JPG로 저장
-    selectWindow('C1');
-    saveAs('Jpeg', outputDir + fileName + '_R.jpg');
+    // 현재 열려 있는 창 목록을 가져옴
+    channelWindows = getList("window.titles");
 
-    selectWindow('C2');
-    saveAs('Jpeg', outputDir + fileName + '_G.jpg');
+    // 각 채널을 선택하고 JPG로 저장
+    for (i = 0; i < channelWindows.length; i++) {
+        windowTitle = channelWindows[i];
+        selectWindow(windowTitle);
 
-    selectWindow('C3');
-    saveAs('Jpeg', outputDir + fileName + '_B.jpg');
+        if (windowTitle.contains("C1")) {
+            saveAs('Jpeg', outputDir + fileName + '_R.jpg');
+        } else if (windowTitle.contains("C2")) {
+            saveAs('Jpeg', outputDir + fileName + '_G.jpg');
+        } else if (windowTitle.contains("C3")) {
+            saveAs('Jpeg', outputDir + fileName + '_B.jpg');
+        }
+    }
 
     run('Close All');
 
     // R + G Merge
     open(outputDir + fileName + '_R.jpg');
     run('RGB Color');
-    rename('C1-' + fileName);
     open(outputDir + fileName + '_G.jpg');
     run('RGB Color');
-    rename('C2-' + fileName);
-    run('Merge Channels...', 'c1=[C1-' + fileName + '] c2=[C2-' + fileName + '] create');
+    run('Merge Channels...', 'c1=[' + fileName + '_R.jpg] c2=[' + fileName + '_G.jpg] create');
     saveAs('Jpeg', outputDir + fileName + '_R+G.jpg');
     run('Close All');
 
     // R + B Merge
     open(outputDir + fileName + '_R.jpg');
     run('RGB Color');
-    rename('C1-' + fileName);
     open(outputDir + fileName + '_B.jpg');
     run('RGB Color');
-    rename('C3-' + fileName);
-    run('Merge Channels...', 'c1=[C1-' + fileName + '] c3=[C3-' + fileName + '] create');
+    run('Merge Channels...', 'c1=[' + fileName + '_R.jpg] c3=[' + fileName + '_B.jpg] create');
     saveAs('Jpeg', outputDir + fileName + '_R+B.jpg');
     run('Close All');
 
     // G + B Merge
     open(outputDir + fileName + '_G.jpg');
     run('RGB Color');
-    rename('C2-' + fileName);
     open(outputDir + fileName + '_B.jpg');
     run('RGB Color');
-    rename('C3-' + fileName);
-    run('Merge Channels...', 'c2=[C2-' + fileName + '] c3=[C3-' + fileName + '] create');
+    run('Merge Channels...', 'c2=[' + fileName + '_G.jpg] c3=[' + fileName + '_B.jpg] create');
     saveAs('Jpeg', outputDir + fileName + '_G+B.jpg');
     run('Close All');
 }
@@ -478,6 +478,7 @@ function splitChannel() {
 function getExtension(filePath) {
     return substring(filePath, lastIndexOf(filePath, ".") + 1).toLowerCase();
 }
+
 
 
 // 개별 채널 저장 함수
