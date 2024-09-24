@@ -24,7 +24,7 @@ arg=colorConversionAndSave();
 <separator>
 
 <button>
-label=<html><font color='black'><b> Split Channel2
+label=<html><font color='black'><b> Ssplit Channel
 bgcolor=#ffd03e
 arg=splitChannel();
 <separator>
