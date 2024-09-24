@@ -410,8 +410,16 @@ function splitChannel() {
     }
 
     open(filePath);
-    originalSavePath = outputDir + fileName + '_original.jpg';
-    saveAs('Jpeg', originalSavePath);
+    
+    // 파일 확장자에 따라 TIFF 또는 JPEG 형식을 열지만 결과는 모두 JPG로 저장
+    extension = getExtension(filePath);
+    
+    if (extension == "tiff" || extension == "tif" || extension == "jpg" || extension == "jpeg") {
+        originalSavePath = outputDir + fileName + '_original.jpg';
+        saveAs('Jpeg', originalSavePath);
+    } else {
+        exit("Unsupported file format. Please select a TIFF or JPG image.");
+    }
 
     imageType = getInfo('image.type');
     if (imageType != 'composite') {
@@ -424,42 +432,51 @@ function splitChannel() {
     saveChannel('C3-' + fileName + '.jpg', outputDir + fileName + '_B.jpg');
     run('Close All');
 
+    // R + G Merge
     open(outputDir + fileName + '_R.jpg');
     run('RGB Color');
     rename('C1-' + fileName + '.jpg');
     open(outputDir + fileName + '_G.jpg');
     run('RGB Color');
     rename('C2-' + fileName + '.jpg');
-    open(outputDir + fileName + '_B.jpg');
-    run('RGB Color');
-    rename('C3-' + fileName + '.jpg');
-
     run('Merge Channels...', 'c1=[C1-' + fileName + '.jpg] c2=[C2-' + fileName + '.jpg] create');
     saveAs('Jpeg', outputDir + fileName + '_R+G.jpg');
     run('Close All');
 
+    // R + B Merge
     open(outputDir + fileName + '_R.jpg');
     run('RGB Color');
     rename('C1-' + fileName + '.jpg');
     open(outputDir + fileName + '_B.jpg');
     run('RGB Color');
     rename('C3-' + fileName + '.jpg');
-
     run('Merge Channels...', 'c1=[C1-' + fileName + '.jpg] c3=[C3-' + fileName + '.jpg] create');
     saveAs('Jpeg', outputDir + fileName + '_R+B.jpg');
     run('Close All');
 
+    // G + B Merge
     open(outputDir + fileName + '_G.jpg');
     run('RGB Color');
     rename('C2-' + fileName + '.jpg');
     open(outputDir + fileName + '_B.jpg');
     run('RGB Color');
     rename('C3-' + fileName + '.jpg');
-
     run('Merge Channels...', 'c2=[C2-' + fileName + '.jpg] c3=[C3-' + fileName + '.jpg] create');
     saveAs('Jpeg', outputDir + fileName + '_G+B.jpg');
     run('Close All');
 }
+
+// 파일 확장자 추출 함수
+function getExtension(filePath) {
+    return substring(filePath, lastIndexOf(filePath, ".") + 1).toLowerCase();
+}
+
+// 개별 채널 저장 함수
+function saveChannel(channelName, outputFilePath) {
+    selectWindow(channelName);
+    saveAs('Jpeg', outputFilePath);
+}
+
 
 function waitForDirectory(path) {
     attempts = 0;
