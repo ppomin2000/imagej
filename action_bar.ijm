@@ -408,17 +408,22 @@ function splitChannel() {
         }
     }
 
-    open(filePath);
-    
-    // TIFF 또는 JPEG 파일을 열고 결과는 JPG로 저장
+    // 파일 확장자 가져오기
     extension = getExtension(filePath);
     
-    if (extension == "tiff" || extension == "tif" || extension == "jpg" || extension == "jpeg") {
+    // tif 파일이면 jpg로 변환하여 저장
+    if (extension == "tif" || extension == "tiff") {
+        open(filePath);
         originalSavePath = outputDir + fileName + '_original.jpg';
         saveAs('Jpeg', originalSavePath);
-    } else {
-        exit("Unsupported file format. Please select a TIFF or JPG image.");
+        close(); // tif 파일을 닫음
+        filePath = originalSavePath; // 이후에 jpg 파일을 처리하도록 경로 변경
     }
+
+    // JPG 파일을 열고 처리
+    open(filePath);
+    originalSavePath = outputDir + fileName + '_original.jpg';
+    saveAs('Jpeg', originalSavePath);
 
     imageType = getInfo('image.type');
     if (imageType != 'composite') {
@@ -426,50 +431,44 @@ function splitChannel() {
     }
 
     run('Split Channels');
-
-    // 현재 열려 있는 창 목록을 가져옴
-    channelWindows = getList("window.titles");
-
-    // 각 채널을 선택하고 JPG로 저장
-    for (i = 0; i < channelWindows.length; i++) {
-        windowTitle = channelWindows[i];
-        selectWindow(windowTitle);
-
-        if (windowTitle.contains("C1")) {
-            saveAs('Jpeg', outputDir + fileName + '_R.jpg');
-        } else if (windowTitle.contains("C2")) {
-            saveAs('Jpeg', outputDir + fileName + '_G.jpg');
-        } else if (windowTitle.contains("C3")) {
-            saveAs('Jpeg', outputDir + fileName + '_B.jpg');
-        }
-    }
-
+    saveChannel('C1-' + fileName + '.jpg', outputDir + fileName + '_R.jpg');
+    saveChannel('C2-' + fileName + '.jpg', outputDir + fileName + '_G.jpg');
+    saveChannel('C3-' + fileName + '.jpg', outputDir + fileName + '_B.jpg');
     run('Close All');
 
-    // R + G Merge
     open(outputDir + fileName + '_R.jpg');
     run('RGB Color');
+    rename('C1-' + fileName + '.jpg');
     open(outputDir + fileName + '_G.jpg');
     run('RGB Color');
-    run('Merge Channels...', 'c1=[' + fileName + '_R.jpg] c2=[' + fileName + '_G.jpg] create');
+    rename('C2-' + fileName + '.jpg');
+    open(outputDir + fileName + '_B.jpg');
+    run('RGB Color');
+    rename('C3-' + fileName + '.jpg');
+
+    run('Merge Channels...', 'c1=[C1-' + fileName + '.jpg] c2=[C2-' + fileName + '.jpg] create');
     saveAs('Jpeg', outputDir + fileName + '_R+G.jpg');
     run('Close All');
 
-    // R + B Merge
     open(outputDir + fileName + '_R.jpg');
     run('RGB Color');
+    rename('C1-' + fileName + '.jpg');
     open(outputDir + fileName + '_B.jpg');
     run('RGB Color');
-    run('Merge Channels...', 'c1=[' + fileName + '_R.jpg] c3=[' + fileName + '_B.jpg] create');
+    rename('C3-' + fileName + '.jpg');
+
+    run('Merge Channels...', 'c1=[C1-' + fileName + '.jpg] c3=[C3-' + fileName + '.jpg] create');
     saveAs('Jpeg', outputDir + fileName + '_R+B.jpg');
     run('Close All');
 
-    // G + B Merge
     open(outputDir + fileName + '_G.jpg');
     run('RGB Color');
+    rename('C2-' + fileName + '.jpg');
     open(outputDir + fileName + '_B.jpg');
     run('RGB Color');
-    run('Merge Channels...', 'c2=[' + fileName + '_G.jpg] c3=[' + fileName + '_B.jpg] create');
+    rename('C3-' + fileName + '.jpg');
+
+    run('Merge Channels...', 'c2=[C2-' + fileName + '.jpg] c3=[C3-' + fileName + '.jpg] create');
     saveAs('Jpeg', outputDir + fileName + '_G+B.jpg');
     run('Close All');
 }
@@ -477,14 +476,6 @@ function splitChannel() {
 // 파일 확장자 추출 함수
 function getExtension(filePath) {
     return substring(filePath, lastIndexOf(filePath, ".") + 1).toLowerCase();
-}
-
-
-
-// 개별 채널 저장 함수
-function saveChannel(channelName, outputFilePath) {
-    selectWindow(channelName);
-    saveAs('Jpeg', outputFilePath);
 }
 
 
