@@ -411,12 +411,12 @@ function splitChannel() {
     // tif 파일이면 jpg로 변환 후 처리
     if (endsWith(filePath, ".tif") || endsWith(filePath, ".tiff")) {
         open(filePath);  // tif 파일 열기
-        originalSavePath = outputDir + fileName + '_original.jpg';
+        originalSavePath = outputDir + fileName + 'l.jpg';
         saveAs('Jpeg', originalSavePath);  // jpg로 변환 후 저장
         filePath = originalSavePath;  // 이후 작업에서 jpg 파일을 사용하도록 filePath 업데이트
     } else {
         open(filePath);  // tif 파일이 아닌 경우 원본 파일 그대로 열기
-        originalSavePath = outputDir + fileName + '_original.jpg';
+        originalSavePath = outputDir + fileName + '_.jpg';
         saveAs('Jpeg', originalSavePath);  // jpg로 저장
     }
 
