@@ -427,9 +427,17 @@ function splitChannel() {
     }
 
     run('Split Channels');
-    saveChannel('C1', outputDir + fileName + '_R.jpg');
-    saveChannel('C2', outputDir + fileName + '_G.jpg');
-    saveChannel('C3', outputDir + fileName + '_B.jpg');
+
+    // 각 채널 창을 JPG로 저장
+    selectWindow('C1');
+    saveAs('Jpeg', outputDir + fileName + '_R.jpg');
+
+    selectWindow('C2');
+    saveAs('Jpeg', outputDir + fileName + '_G.jpg');
+
+    selectWindow('C3');
+    saveAs('Jpeg', outputDir + fileName + '_B.jpg');
+
     run('Close All');
 
     // R + G Merge
@@ -470,6 +478,7 @@ function splitChannel() {
 function getExtension(filePath) {
     return substring(filePath, lastIndexOf(filePath, ".") + 1).toLowerCase();
 }
+
 
 // 개별 채널 저장 함수
 function saveChannel(channelName, outputFilePath) {
