@@ -400,7 +400,7 @@ function splitChannel() {
     fileDir = getParent(filePath);
     fileName = getFileNameWithoutExtension(filePath);
     outputDir = fileDir + File.separator + fileName + File.separator;
-    
+
     if (!File.exists(outputDir)) {
         success = File.makeDirectory(outputDir);
         if (!success) {
@@ -410,11 +410,15 @@ function splitChannel() {
 
     open(filePath);
     
-    // 이미지가 TIF인 경우 JPG로 변환 후 저장
+    // tif 파일일 경우 jpg로 변환
     if (endsWith(filePath, ".tif") || endsWith(filePath, ".tiff")) {
-        saveAs('Jpeg', outputDir + fileName + '.jpg');
+        originalSavePath = outputDir + fileName + '.jpg'; // tif를 jpg로 저장
+        saveAs('Jpeg', originalSavePath);
+        close(); // tif 파일을 닫고
+        open(originalSavePath); // 방금 저장한 jpg 파일을 다시 엽니다
     } else {
-        saveAs('Jpeg', outputDir + fileName + '.jpg');
+        originalSavePath = outputDir + fileName + '_original.jpg'; // jpg로 저장
+        saveAs('Jpeg', originalSavePath);
     }
 
     imageType = getInfo('image.type');
@@ -422,14 +426,14 @@ function splitChannel() {
         run('Make Composite', 'display=Composite');
     }
 
-    // 채널 분할
+    // 채널 분리
     run('Split Channels');
     saveChannel('C1-' + fileName + '.jpg', outputDir + fileName + '_R.jpg');
     saveChannel('C2-' + fileName + '.jpg', outputDir + fileName + '_G.jpg');
     saveChannel('C3-' + fileName + '.jpg', outputDir + fileName + '_B.jpg');
     run('Close All');
 
-    // R, G, B 이미지 처리
+    // R, G, B 채널을 각각 열어서 작업
     open(outputDir + fileName + '_R.jpg');
     run('RGB Color');
     rename('C1-' + fileName + '.jpg');
@@ -442,12 +446,12 @@ function splitChannel() {
     run('RGB Color');
     rename('C3-' + fileName + '.jpg');
 
-    // R+G 채널 병합
+    // R+G 채널 병합 및 저장
     run('Merge Channels...', 'c1=[C1-' + fileName + '.jpg] c2=[C2-' + fileName + '.jpg] create');
     saveAs('Jpeg', outputDir + fileName + '_R+G.jpg');
     run('Close All');
 
-    // R+B 채널 병합
+    // R+B 채널 병합 및 저장
     open(outputDir + fileName + '_R.jpg');
     run('RGB Color');
     rename('C1-' + fileName + '.jpg');
@@ -460,7 +464,7 @@ function splitChannel() {
     saveAs('Jpeg', outputDir + fileName + '_R+B.jpg');
     run('Close All');
 
-    // G+B 채널 병합
+    // G+B 채널 병합 및 저장
     open(outputDir + fileName + '_G.jpg');
     run('RGB Color');
     rename('C2-' + fileName + '.jpg');
@@ -473,6 +477,7 @@ function splitChannel() {
     saveAs('Jpeg', outputDir + fileName + '_G+B.jpg');
     run('Close All');
 }
+
 
 
 function waitForDirectory(path) {
