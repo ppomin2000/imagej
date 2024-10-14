@@ -815,7 +815,8 @@ function processFolder(folder, color, outputDir) {
     if (File.exists(outputDir)) {
         list = getFileList(folder);
         for (i = 0; i < list.length; i++) {
-            if (endsWith(list[i], ".tif") || endsWith(list[i], ".tiff")) {
+            // .tif, .tiff, .jpg 확장자만 처리
+            if (endsWith(list[i], ".tif") || endsWith(list[i], ".tiff") || endsWith(list[i], ".jpg")) {
                 open(folder + list[i]);
                 setColorLUT(color);
                 
@@ -835,7 +836,6 @@ function processFolder(folder, color, outputDir) {
         exit("Failed to access directory: " + outputDir);
     }
 }
-
 
 function closeAllImages() {
     while (nImages() > 0) {
@@ -880,5 +880,6 @@ function replaceExtension(filename, newExtension) {
 function replaceSpaces(filename) {
     return replace(replace(filename, " ", "_"), ",", "_");
 }
+
 
 </codeLibrary>
