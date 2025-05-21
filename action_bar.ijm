@@ -398,14 +398,14 @@ function splitChannelBatch() {
 
     for (i = 0; i < fileList.length; i++) {
         file = fileList[i];
-        
-        // 이미지 파일 형식만 처리 (.tif, .jpg, .png)
+
+        // 이미지 파일만 처리
         if (!endsWith(toLowerCase(file), ".jpg") &&
             !endsWith(toLowerCase(file), ".jpeg") &&
             !endsWith(toLowerCase(file), ".tif") &&
             !endsWith(toLowerCase(file), ".tiff") &&
             !endsWith(toLowerCase(file), ".png")) {
-            continue; // 이미지가 아니면 건너뜀
+            continue;
         }
 
         filePath = folder + file;
@@ -418,7 +418,7 @@ function splitChannelBatch() {
 
         open(filePath);
 
-        // tif 파일을 jpg로 변환
+        // tif → jpg 변환
         if (endsWith(toLowerCase(file), ".tif") || endsWith(toLowerCase(file), ".tiff")) {
             originalSavePath = outputDir + fileName + '.jpg';
             saveAs('Jpeg', originalSavePath);
@@ -440,21 +440,21 @@ function splitChannelBatch() {
         saveChannel('C3-' + fileName + '.jpg', outputDir + fileName + '_B.jpg');
         run('Close All');
 
-        // R+G 채널 병합 및 저장
+        // R+G 병합
         open(outputDir + fileName + '_R.jpg'); run('RGB Color'); rename('Red');
         open(outputDir + fileName + '_G.jpg'); run('RGB Color'); rename('Green');
         run('Merge Channels...', 'c1=Red c2=Green create');
         saveAs('Jpeg', outputDir + fileName + '_R+G.jpg');
         run('Close All');
 
-        // R+B 채널 병합 및 저장
+        // R+B 병합
         open(outputDir + fileName + '_R.jpg'); run('RGB Color'); rename('Red');
         open(outputDir + fileName + '_B.jpg'); run('RGB Color'); rename('Blue');
         run('Merge Channels...', 'c1=Red c3=Blue create');
         saveAs('Jpeg', outputDir + fileName + '_R+B.jpg');
         run('Close All');
 
-        // G+B 채널 병합 및 저장
+        // G+B 병합
         open(outputDir + fileName + '_G.jpg'); run('RGB Color'); rename('Green');
         open(outputDir + fileName + '_B.jpg'); run('RGB Color'); rename('Blue');
         run('Merge Channels...', 'c2=Green c3=Blue create');
@@ -462,12 +462,10 @@ function splitChannelBatch() {
         run('Close All');
     }
 
-    print("All done!");
+    print("✅ 모든 이미지 처리를 완료했습니다!");
 }
 
-
-
-// 실행
+// 실행 시작점 (Action Bar에서 호출할 때 사용)
 splitChannelBatch();
 
 
