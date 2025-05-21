@@ -388,80 +388,88 @@ function RGBtoHotMYC() {
 
 
 
-// 시작점: Action Bar에서 arg=splitChannelBatch(); 으로 실행
 function splitChannelBatch() {
-    // Java FileDialog로 다중 이미지 선택
-    java.lang.System.setProperty("apple.awt.fileDialogForDirectories", "false");
-    fd = new java.awt.FileDialog(java.awt.Frame(), "Select multiple image files", java.awt.FileDialog.LOAD);
-    fd.setMultipleMode(true);
-    fd.setVisible(true);
-    files = fd.getFiles();
-
-    // 사용자가 파일을 선택하지 않았을 경우
-    if (files == "" || files.length == 0) {
-        exit("No files selected.");
+    folder = getDirectory("Choose the folder containing your images");
+    if (folder == "") {
+        exit("No folder selected.");
     }
 
-    // 각 파일을 순차적으로 처리
-    for (i = 0; i < files.length; i++) {
-        path = "" + files[i].getAbsolutePath();
-        fileName = File.nameWithoutExtension(path);
-        fileDir = File.getParent(path);
-        outputDir = fileDir + File.separator + fileName + File.separator;
+    fileList = getFileList(folder);
 
-        if (!File.exists(outputDir)) {
-            success = File.makeDirectory(outputDir);
-            if (!success) waitForDirectory(outputDir);
+    for (i = 0; i < fileList.length; i++) {
+        file = fileList[i];
+        
+        // 이미지 파일 형식만 처리 (.tif, .jpg, .png)
+        if (!endsWith(toLowerCase(file), ".jpg") &&
+            !endsWith(toLowerCase(file), ".jpeg") &&
+            !endsWith(toLowerCase(file), ".tif") &&
+            !endsWith(toLowerCase(file), ".tiff") &&
+            !endsWith(toLowerCase(file), ".png")) {
+            continue; // 이미지가 아니면 건너뜀
         }
 
-        // 파일 열기
-        open(path);
+        filePath = folder + file;
+        fileName = File.nameWithoutExtension(filePath);
+        outputDir = folder + fileName + File.separator;
 
-        // tif인 경우 jpg로 변환
-        if (endsWith(path, ".tif") || endsWith(path, ".tiff")) {
-            originalSavePath = outputDir + fileName + ".jpg";
-            saveAs("Jpeg", originalSavePath);
+        if (!File.exists(outputDir)) {
+            File.makeDirectory(outputDir);
+        }
+
+        open(filePath);
+
+        // tif 파일을 jpg로 변환
+        if (endsWith(toLowerCase(file), ".tif") || endsWith(toLowerCase(file), ".tiff")) {
+            originalSavePath = outputDir + fileName + '.jpg';
+            saveAs('Jpeg', originalSavePath);
             close();
             open(originalSavePath);
         } else {
-            originalSavePath = outputDir + fileName + "_original.jpg";
-            saveAs("Jpeg", originalSavePath);
+            originalSavePath = outputDir + fileName + '_original.jpg';
+            saveAs('Jpeg', originalSavePath);
         }
 
-        imageType = getInfo("image.type");
-        if (imageType != "composite") {
-            run("Make Composite", "display=Composite");
+        imageType = getInfo('image.type');
+        if (imageType != 'composite') {
+            run('Make Composite', 'display=Composite');
         }
 
-        // 채널 분리
-        run("Split Channels");
-        saveChannel("C1-" + fileName + ".jpg", outputDir + fileName + "_R.jpg");
-        saveChannel("C2-" + fileName + ".jpg", outputDir + fileName + "_G.jpg");
-        saveChannel("C3-" + fileName + ".jpg", outputDir + fileName + "_B.jpg");
-        run("Close All");
+        run('Split Channels');
+        saveChannel('C1-' + fileName + '.jpg', outputDir + fileName + '_R.jpg');
+        saveChannel('C2-' + fileName + '.jpg', outputDir + fileName + '_G.jpg');
+        saveChannel('C3-' + fileName + '.jpg', outputDir + fileName + '_B.jpg');
+        run('Close All');
 
-        // R+G 병합
-        open(outputDir + fileName + "_R.jpg"); run("RGB Color"); rename("C1-" + fileName + ".jpg");
-        open(outputDir + fileName + "_G.jpg"); run("RGB Color"); rename("C2-" + fileName + ".jpg");
-        run("Merge Channels...", "c1=[C1-" + fileName + ".jpg] c2=[C2-" + fileName + ".jpg] create");
-        saveAs("Jpeg", outputDir + fileName + "_R+G.jpg");
-        run("Close All");
+        // R+G 채널 병합 및 저장
+        open(outputDir + fileName + '_R.jpg'); run('RGB Color'); rename('Red');
+        open(outputDir + fileName + '_G.jpg'); run('RGB Color'); rename('Green');
+        run('Merge Channels...', 'c1=Red c2=Green create');
+        saveAs('Jpeg', outputDir + fileName + '_R+G.jpg');
+        run('Close All');
 
-        // R+B 병합
-        open(outputDir + fileName + "_R.jpg"); run("RGB Color"); rename("C1-" + fileName + ".jpg");
-        open(outputDir + fileName + "_B.jpg"); run("RGB Color"); rename("C3-" + fileName + ".jpg");
-        run("Merge Channels...", "c1=[C1-" + fileName + ".jpg] c3=[C3-" + fileName + ".jpg] create");
-        saveAs("Jpeg", outputDir + fileName + "_R+B.jpg");
-        run("Close All");
+        // R+B 채널 병합 및 저장
+        open(outputDir + fileName + '_R.jpg'); run('RGB Color'); rename('Red');
+        open(outputDir + fileName + '_B.jpg'); run('RGB Color'); rename('Blue');
+        run('Merge Channels...', 'c1=Red c3=Blue create');
+        saveAs('Jpeg', outputDir + fileName + '_R+B.jpg');
+        run('Close All');
 
-        // G+B 병합
-        open(outputDir + fileName + "_G.jpg"); run("RGB Color"); rename("C2-" + fileName + ".jpg");
-        open(outputDir + fileName + "_B.jpg"); run("RGB Color"); rename("C3-" + fileName + ".jpg");
-        run("Merge Channels...", "c2=[C2-" + fileName + ".jpg] c3=[C3-" + fileName + ".jpg] create");
-        saveAs("Jpeg", outputDir + fileName + "_G+B.jpg");
-        run("Close All");
+        // G+B 채널 병합 및 저장
+        open(outputDir + fileName + '_G.jpg'); run('RGB Color'); rename('Green');
+        open(outputDir + fileName + '_B.jpg'); run('RGB Color'); rename('Blue');
+        run('Merge Channels...', 'c2=Green c3=Blue create');
+        saveAs('Jpeg', outputDir + fileName + '_G+B.jpg');
+        run('Close All');
     }
+
+    print("All done!");
 }
+
+
+
+// 실행
+splitChannelBatch();
+
 
 
 
