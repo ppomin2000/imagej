@@ -388,116 +388,81 @@ function RGBtoHotMYC() {
 
 
 
-// Split Channel for multiple images in a folder
+// 시작점: Action Bar에서 arg=splitChannelBatch(); 으로 실행
 function splitChannelBatch() {
-    folder = getDirectory("Choose a folder with image files");
-    if (folder == null) {
-        exit("No folder selected.");
+    // Java FileDialog로 다중 이미지 선택
+    java.lang.System.setProperty("apple.awt.fileDialogForDirectories", "false");
+    fd = new java.awt.FileDialog(java.awt.Frame(), "Select multiple image files", java.awt.FileDialog.LOAD);
+    fd.setMultipleMode(true);
+    fd.setVisible(true);
+    files = fd.getFiles();
+
+    // 사용자가 파일을 선택하지 않았을 경우
+    if (files == null || files.length == 0) {
+        exit("No files selected.");
     }
 
-    fileList = getFileList(folder);
-
-    for (i = 0; i < fileList.length; i++) {
-        file = fileList[i];
-        if (!(endsWith(file, ".jpg") || endsWith(file, ".tif") || endsWith(file, ".tiff") || endsWith(file, ".png"))) {
-            continue; // Skip non-image files
-        }
-
-        fullPath = folder + file;
-        fileName = getFileNameWithoutExtension(fullPath);
-        outputDir = folder + fileName + File.separator;
+    // 각 파일을 순차적으로 처리
+    for (i = 0; i < files.length; i++) {
+        path = "" + files[i].getAbsolutePath();
+        fileName = File.nameWithoutExtension(path);
+        fileDir = File.getParent(path);
+        outputDir = fileDir + File.separator + fileName + File.separator;
 
         if (!File.exists(outputDir)) {
             success = File.makeDirectory(outputDir);
-            if (!success) {
-                waitForDirectory(outputDir);
-            }
+            if (!success) waitForDirectory(outputDir);
         }
 
-        open(fullPath);
+        // 파일 열기
+        open(path);
 
-        // Convert tif to jpg
-        if (endsWith(file, ".tif") || endsWith(file, ".tiff")) {
-            originalSavePath = outputDir + fileName + '.jpg';
-            saveAs('Jpeg', originalSavePath);
+        // tif인 경우 jpg로 변환
+        if (endsWith(path, ".tif") || endsWith(path, ".tiff")) {
+            originalSavePath = outputDir + fileName + ".jpg";
+            saveAs("Jpeg", originalSavePath);
             close();
             open(originalSavePath);
         } else {
-            originalSavePath = outputDir + fileName + '_original.jpg';
-            saveAs('Jpeg', originalSavePath);
+            originalSavePath = outputDir + fileName + "_original.jpg";
+            saveAs("Jpeg", originalSavePath);
         }
 
-        imageType = getInfo('image.type');
-        if (imageType != 'composite') {
-            run('Make Composite', 'display=Composite');
+        imageType = getInfo("image.type");
+        if (imageType != "composite") {
+            run("Make Composite", "display=Composite");
         }
 
-        run('Split Channels');
-        saveChannel('C1-' + fileName + '.jpg', outputDir + fileName + '_R.jpg');
-        saveChannel('C2-' + fileName + '.jpg', outputDir + fileName + '_G.jpg');
-        saveChannel('C3-' + fileName + '.jpg', outputDir + fileName + '_B.jpg');
-        run('Close All');
+        // 채널 분리
+        run("Split Channels");
+        saveChannel("C1-" + fileName + ".jpg", outputDir + fileName + "_R.jpg");
+        saveChannel("C2-" + fileName + ".jpg", outputDir + fileName + "_G.jpg");
+        saveChannel("C3-" + fileName + ".jpg", outputDir + fileName + "_B.jpg");
+        run("Close All");
 
-        // R+G
-        open(outputDir + fileName + '_R.jpg');
-        run('RGB Color');
-        rename('C1-' + fileName + '.jpg');
+        // R+G 병합
+        open(outputDir + fileName + "_R.jpg"); run("RGB Color"); rename("C1-" + fileName + ".jpg");
+        open(outputDir + fileName + "_G.jpg"); run("RGB Color"); rename("C2-" + fileName + ".jpg");
+        run("Merge Channels...", "c1=[C1-" + fileName + ".jpg] c2=[C2-" + fileName + ".jpg] create");
+        saveAs("Jpeg", outputDir + fileName + "_R+G.jpg");
+        run("Close All");
 
-        open(outputDir + fileName + '_G.jpg');
-        run('RGB Color');
-        rename('C2-' + fileName + '.jpg');
+        // R+B 병합
+        open(outputDir + fileName + "_R.jpg"); run("RGB Color"); rename("C1-" + fileName + ".jpg");
+        open(outputDir + fileName + "_B.jpg"); run("RGB Color"); rename("C3-" + fileName + ".jpg");
+        run("Merge Channels...", "c1=[C1-" + fileName + ".jpg] c3=[C3-" + fileName + ".jpg] create");
+        saveAs("Jpeg", outputDir + fileName + "_R+B.jpg");
+        run("Close All");
 
-        run('Merge Channels...', 'c1=[C1-' + fileName + '.jpg] c2=[C2-' + fileName + '.jpg] create');
-        saveAs('Jpeg', outputDir + fileName + '_R+G.jpg');
-        run('Close All');
-
-        // R+B
-        open(outputDir + fileName + '_R.jpg');
-        run('RGB Color');
-        rename('C1-' + fileName + '.jpg');
-
-        open(outputDir + fileName + '_B.jpg');
-        run('RGB Color');
-        rename('C3-' + fileName + '.jpg');
-
-        run('Merge Channels...', 'c1=[C1-' + fileName + '.jpg] c3=[C3-' + fileName + '.jpg] create');
-        saveAs('Jpeg', outputDir + fileName + '_R+B.jpg');
-        run('Close All');
-
-        // G+B
-        open(outputDir + fileName + '_G.jpg');
-        run('RGB Color');
-        rename('C2-' + fileName + '.jpg');
-
-        open(outputDir + fileName + '_B.jpg');
-        run('RGB Color');
-        rename('C3-' + fileName + '.jpg');
-
-        run('Merge Channels...', 'c2=[C2-' + fileName + '.jpg] c3=[C3-' + fileName + '.jpg] create');
-        saveAs('Jpeg', outputDir + fileName + '_G+B.jpg');
-        run('Close All');
+        // G+B 병합
+        open(outputDir + fileName + "_G.jpg"); run("RGB Color"); rename("C2-" + fileName + ".jpg");
+        open(outputDir + fileName + "_B.jpg"); run("RGB Color"); rename("C3-" + fileName + ".jpg");
+        run("Merge Channels...", "c2=[C2-" + fileName + ".jpg] c3=[C3-" + fileName + ".jpg] create");
+        saveAs("Jpeg", outputDir + fileName + "_G+B.jpg");
+        run("Close All");
     }
 }
 
-// Helper functions
-function getFileNameWithoutExtension(path) {
-    name = File.nameWithoutExtension(path);
-    return name;
-}
-
-function waitForDirectory(dir) {
-    while (!File.exists(dir)) {
-        wait(100);
-    }
-}
-
-function saveChannel(windowTitle, savePath) {
-    selectWindow(windowTitle);
-    saveAs('Jpeg', savePath);
-    close();
-}
-
-splitChannelBatch();
 
 
 
