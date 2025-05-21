@@ -26,6 +26,12 @@ arg=colorConversionAndSave();
 <button>
 label=<html><font color='black'><b> Split Channel
 bgcolor=#ffd03e
+arg=splitChannel();
+<separator>
+
+<button>
+label=<html><font color='black'><b> Split Batch
+bgcolor=#ffea7c
 arg=splitChannelBatch();
 <separator>
 
@@ -385,7 +391,62 @@ function RGBtoHotMYC() {
     setBatchMode(false);
 }
 
+// 원본 splitChannel 함수 (단일 이미지 처리용)
+function splitChannel() {
+    inputFile = File.openDialog('Select an image file');
+    if (inputFile == '') exit('No file selected.');
 
+    filePath = inputFile;
+    fileDir = getParent(filePath);
+    fileName = getFileNameWithoutExtension(filePath);
+    outputDir = fileDir + File.separator + fileName + File.separator;
+
+    if (!File.exists(outputDir)) {
+        success = File.makeDirectory(outputDir);
+        if (!success) waitForDirectory(outputDir);
+    }
+
+    open(filePath);
+
+    if (endsWith(toLowerCase(filePath), ".tif") || endsWith(toLowerCase(filePath), ".tiff")) {
+        originalSavePath = outputDir + fileName + '.jpg';
+        saveAs('Jpeg', originalSavePath);
+        close();
+        open(originalSavePath);
+    } else {
+        originalSavePath = outputDir + fileName + '_original.jpg';
+        saveAs('Jpeg', originalSavePath);
+    }
+
+    imageType = getInfo('image.type');
+    if (imageType != 'composite') {
+        run('Make Composite', 'display=Composite');
+    }
+
+    run('Split Channels');
+    saveChannel('C1-' + fileName + '.jpg', outputDir + fileName + '_R.jpg');
+    saveChannel('C2-' + fileName + '.jpg', outputDir + fileName + '_G.jpg');
+    saveChannel('C3-' + fileName + '.jpg', outputDir + fileName + '_B.jpg');
+    run('Close All');
+
+    open(outputDir + fileName + '_R.jpg'); run('RGB Color'); rename('Red');
+    open(outputDir + fileName + '_G.jpg'); run('RGB Color'); rename('Green');
+    run('Merge Channels...', 'c1=Red c2=Green create');
+    saveAs('Jpeg', outputDir + fileName + '_R+G.jpg');
+    run('Close All');
+
+    open(outputDir + fileName + '_R.jpg'); run('RGB Color'); rename('Red');
+    open(outputDir + fileName + '_B.jpg'); run('RGB Color'); rename('Blue');
+    run('Merge Channels...', 'c1=Red c3=Blue create');
+    saveAs('Jpeg', outputDir + fileName + '_R+B.jpg');
+    run('Close All');
+
+    open(outputDir + fileName + '_G.jpg'); run('RGB Color'); rename('Green');
+    open(outputDir + fileName + '_B.jpg'); run('RGB Color'); rename('Blue');
+    run('Merge Channels...', 'c2=Green c3=Blue create');
+    saveAs('Jpeg', outputDir + fileName + '_G+B.jpg');
+    run('Close All');
+}
 
 
 // Split Channel Batch 함수 정의 (완벽 수정)
