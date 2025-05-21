@@ -388,18 +388,16 @@ function RGBtoHotMYC() {
 
 
 
+// Split Channel Batch 함수 정의 (완벽 수정)
 function splitChannelBatch() {
     folder = getDirectory("Choose the folder containing your images");
-    if (folder == "") {
-        exit("No folder selected.");
-    }
+    if (folder == "") exit("No folder selected.");
 
     fileList = getFileList(folder);
 
     for (i = 0; i < fileList.length; i++) {
         file = fileList[i];
 
-        // 이미지 파일만 처리
         if (!endsWith(toLowerCase(file), ".jpg") &&
             !endsWith(toLowerCase(file), ".jpeg") &&
             !endsWith(toLowerCase(file), ".tif") &&
@@ -409,69 +407,87 @@ function splitChannelBatch() {
         }
 
         filePath = folder + file;
-        fileName = File.nameWithoutExtension(filePath);
+        fileName = getFileNameWithoutExtension(filePath);
         outputDir = folder + fileName + File.separator;
 
         if (!File.exists(outputDir)) {
-            File.makeDirectory(outputDir);
+            success = File.makeDirectory(outputDir);
+            if (!success) waitForDirectory(outputDir);
         }
 
         open(filePath);
 
-        // tif → jpg 변환
+        // tif 파일일 경우 jpg로 변환
         if (endsWith(toLowerCase(file), ".tif") || endsWith(toLowerCase(file), ".tiff")) {
-            originalSavePath = outputDir + fileName + '.jpg';
-            saveAs('Jpeg', originalSavePath);
+            originalSavePath = outputDir + fileName + ".jpg";
+            saveAs("Jpeg", originalSavePath);
             close();
             open(originalSavePath);
         } else {
-            originalSavePath = outputDir + fileName + '_original.jpg';
-            saveAs('Jpeg', originalSavePath);
+            originalSavePath = outputDir + fileName + "_original.jpg";
+            saveAs("Jpeg", originalSavePath);
         }
 
-        imageType = getInfo('image.type');
-        if (imageType != 'composite') {
-            run('Make Composite', 'display=Composite');
+        imageType = getInfo("image.type");
+        if (imageType != "composite") {
+            run("Make Composite", "display=Composite");
         }
 
-        run('Split Channels');
-        saveChannel('C1-' + fileName + '.jpg', outputDir + fileName + '_R.jpg');
-        saveChannel('C2-' + fileName + '.jpg', outputDir + fileName + '_G.jpg');
-        saveChannel('C3-' + fileName + '.jpg', outputDir + fileName + '_B.jpg');
-        run('Close All');
+        run("Split Channels");
+        saveChannel("C1-" + fileName + ".jpg", outputDir + fileName + "_R.jpg");
+        saveChannel("C2-" + fileName + ".jpg", outputDir + fileName + "_G.jpg");
+        saveChannel("C3-" + fileName + ".jpg", outputDir + fileName + "_B.jpg");
+        run("Close All");
 
-        // R+G 병합
-        open(outputDir + fileName + '_R.jpg'); run('RGB Color'); rename('Red');
-        open(outputDir + fileName + '_G.jpg'); run('RGB Color'); rename('Green');
-        run('Merge Channels...', 'c1=Red c2=Green create');
-        saveAs('Jpeg', outputDir + fileName + '_R+G.jpg');
-        run('Close All');
+        // R+G 병합 및 저장
+        open(outputDir + fileName + "_R.jpg");
+        run("RGB Color");
+        rename("Red");
+        open(outputDir + fileName + "_G.jpg");
+        run("RGB Color");
+        rename("Green");
+        run("Merge Channels...", "c1=Red c2=Green create");
+        saveAs("Jpeg", outputDir + fileName + "_R+G.jpg");
+        run("Close All");
 
-        // R+B 병합
-        open(outputDir + fileName + '_R.jpg'); run('RGB Color'); rename('Red');
-        open(outputDir + fileName + '_B.jpg'); run('RGB Color'); rename('Blue');
-        run('Merge Channels...', 'c1=Red c3=Blue create');
-        saveAs('Jpeg', outputDir + fileName + '_R+B.jpg');
-        run('Close All');
+        // R+B 병합 및 저장
+        open(outputDir + fileName + "_R.jpg");
+        run("RGB Color");
+        rename("Red");
+        open(outputDir + fileName + "_B.jpg");
+        run("RGB Color");
+        rename("Blue");
+        run("Merge Channels...", "c1=Red c3=Blue create");
+        saveAs("Jpeg", outputDir + fileName + "_R+B.jpg");
+        run("Close All");
 
-        // G+B 병합
-        open(outputDir + fileName + '_G.jpg'); run('RGB Color'); rename('Green');
-        open(outputDir + fileName + '_B.jpg'); run('RGB Color'); rename('Blue');
-        run('Merge Channels...', 'c2=Green c3=Blue create');
-        saveAs('Jpeg', outputDir + fileName + '_G+B.jpg');
-        run('Close All');
+        // G+B 병합 및 저장
+        open(outputDir + fileName + "_G.jpg");
+        run("RGB Color");
+        rename("Green");
+        open(outputDir + fileName + "_B.jpg");
+        run("RGB Color");
+        rename("Blue");
+        run("Merge Channels...", "c2=Green c3=Blue create");
+        saveAs("Jpeg", outputDir + fileName + "_G+B.jpg");
+        run("Close All");
     }
 
     print("✅ 모든 이미지 처리를 완료했습니다!");
 }
 
-// 실행 시작점 (Action Bar에서 호출할 때 사용)
-splitChannelBatch();
+// getFileNameWithoutExtension 함수 정의 (반드시 필요)
+function getFileNameWithoutExtension(path) {
+    name = substring(path, lastIndexOf(path, File.separator) + 1);
+    dotIndex = lastIndexOf(name, ".");
+    if (dotIndex != -1) {
+        return substring(name, 0, dotIndex);
+    } else {
+        return name;
+    }
+}
 
-
-
-
-
+// waitForDirectory 함수 정의 (반드시 필요)
 function waitForDirectory(path) {
     attempts = 0;
     while (!File.exists(path) && attempts < 10) {
@@ -479,9 +495,20 @@ function waitForDirectory(path) {
         attempts++;
     }
     if (!File.exists(path)) {
-        exit('Failed to create directory after multiple attempts: ' + path);
+        exit("Failed to create directory: " + path);
     }
 }
+
+// saveChannel 함수 정의 (반드시 필요)
+function saveChannel(windowTitle, savePath) {
+    selectWindow(windowTitle);
+    run("RGB Color");
+    saveAs("Jpeg", savePath);
+    close();
+}
+
+
+
 
 function getParent(path) {
     return substring(path, 0, lastIndexOf(path, File.separator));
@@ -492,12 +519,6 @@ function getFileNameWithoutExtension(path) {
     return substring(name, 0, lastIndexOf(name, '.'));
 }
 
-function saveChannel(windowTitle, savePath) {
-    selectWindow(windowTitle);
-    run('RGB Color');
-    saveAs('Jpeg', savePath);
-    close();
-}
 
 // Stack Color 함수 정의
 function stackColor() {
