@@ -398,7 +398,7 @@ function splitChannelBatch() {
     files = fd.getFiles();
 
     // 사용자가 파일을 선택하지 않았을 경우
-    if (files == null || files.length == 0) {
+    if (files == "" || files.length == 0) {
         exit("No files selected.");
     }
 
