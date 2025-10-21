@@ -449,9 +449,8 @@ function splitChannel() {
 }
 
 
-// Split Channel Batch (채널 선택형)
+// Split Channel Batch (채널 선택형, 삼항 연산자 없이)
 function splitChannelBatch() {
-    // --- 채널 선택 UI ---
     folder = getDirectory("Choose the folder containing your images");
     if (folder == "") exit("No folder selected.");
 
@@ -464,10 +463,12 @@ function splitChannelBatch() {
     selG = Dialog.getCheckbox();
     selB = Dialog.getCheckbox();
 
-    if (!selR && !selG && !selB) exit("Select at least one channel.");
-
-    // 선택 개수
-    selCount = (selR?1:0) + (selG?1:0) + (selB?1:0);
+    // ---- 삼항 연산자 대신 if로 카운트 ----
+    selCount = 0;
+    if (selR) selCount++;
+    if (selG) selCount++;
+    if (selB) selCount++;
+    if (selCount == 0) exit("Select at least one channel.");
 
     fileList = getFileList(folder);
 
@@ -475,11 +476,10 @@ function splitChannelBatch() {
         file = fileList[i];
 
         // 허용 확장자만
-        if (!endsWith(toLowerCase(file), ".jpg") &&
-            !endsWith(toLowerCase(file), ".jpeg") &&
-            !endsWith(toLowerCase(file), ".tif") &&
-            !endsWith(toLowerCase(file), ".tiff") &&
-            !endsWith(toLowerCase(file), ".png")) {
+        lower = toLowerCase(file);
+        if (!endsWith(lower, ".jpg") && !endsWith(lower, ".jpeg") &&
+            !endsWith(lower, ".tif") && !endsWith(lower, ".tiff") &&
+            !endsWith(lower, ".png")) {
             continue;
         }
 
@@ -494,7 +494,7 @@ function splitChannelBatch() {
 
         // 열기 & 원본 jpg 저장(기존 로직 유지)
         open(filePath);
-        if (endsWith(toLowerCase(file), ".tif") || endsWith(toLowerCase(file), ".tiff")) {
+        if (endsWith(lower, ".tif") || endsWith(lower, ".tiff")) {
             originalSavePath = outputDir + fileName + ".jpg";
             saveAs("Jpeg", originalSavePath);
             close();
@@ -511,32 +511,28 @@ function splitChannelBatch() {
         }
         run("Split Channels");
 
-        // 개별 채널 저장 (체크된 것만)
+        // 선택한 채널만 저장
         if (selR) saveChannel("C1-" + fileName + ".jpg", outputDir + fileName + "_R.jpg");
         if (selG) saveChannel("C2-" + fileName + ".jpg", outputDir + fileName + "_G.jpg");
         if (selB) saveChannel("C3-" + fileName + ".jpg", outputDir + fileName + "_B.jpg");
 
         run("Close All");
 
-        // --- 병합 저장 ---
+        // ---- 병합 ----
         if (selCount == 2) {
-            // 어떤 조합인지에 따라 하나만 병합
             if (selR && selG) {
-                // R+G
                 open(outputDir + fileName + "_R.jpg"); run("RGB Color"); rename("Red");
                 open(outputDir + fileName + "_G.jpg"); run("RGB Color"); rename("Green");
                 run("Merge Channels...", "c1=Red c2=Green create");
                 saveAs("Jpeg", outputDir + fileName + "_R+G.jpg");
                 run("Close All");
             } else if (selR && selB) {
-                // R+B
                 open(outputDir + fileName + "_R.jpg"); run("RGB Color"); rename("Red");
                 open(outputDir + fileName + "_B.jpg"); run("RGB Color"); rename("Blue");
                 run("Merge Channels...", "c1=Red c3=Blue create");
                 saveAs("Jpeg", outputDir + fileName + "_R+B.jpg");
                 run("Close All");
             } else if (selG && selB) {
-                // G+B
                 open(outputDir + fileName + "_G.jpg"); run("RGB Color"); rename("Green");
                 open(outputDir + fileName + "_B.jpg"); run("RGB Color"); rename("Blue");
                 run("Merge Channels...", "c2=Green c3=Blue create");
@@ -544,33 +540,31 @@ function splitChannelBatch() {
                 run("Close All");
             }
         } else if (selCount == 3) {
-            // 기존과 동일하게 모든 2채널 조합 병합
-            // R+G
+            // 기존과 동일: 모든 2채널 조합
             open(outputDir + fileName + "_R.jpg"); run("RGB Color"); rename("Red");
             open(outputDir + fileName + "_G.jpg"); run("RGB Color"); rename("Green");
             run("Merge Channels...", "c1=Red c2=Green create");
             saveAs("Jpeg", outputDir + fileName + "_R+G.jpg");
             run("Close All");
 
-            // R+B
             open(outputDir + fileName + "_R.jpg"); run("RGB Color"); rename("Red");
             open(outputDir + fileName + "_B.jpg"); run("RGB Color"); rename("Blue");
             run("Merge Channels...", "c1=Red c3=Blue create");
             saveAs("Jpeg", outputDir + fileName + "_R+B.jpg");
             run("Close All");
 
-            // G+B
             open(outputDir + fileName + "_G.jpg"); run("RGB Color"); rename("Green");
             open(outputDir + fileName + "_B.jpg"); run("RGB Color"); rename("Blue");
             run("Merge Channels...", "c2=Green c3=Blue create");
             saveAs("Jpeg", outputDir + fileName + "_G+B.jpg");
             run("Close All");
         }
-        // selCount == 1이면 병합 없음 (단일 채널만 저장)
+        // selCount==1: 병합 없음
     }
 
     print("✅ 선택한 채널 기준으로 분리/병합을 완료했습니다!");
 }
+
 
 
 // getFileNameWithoutExtension 함수 정의 (반드시 필요)
