@@ -449,16 +449,32 @@ function splitChannel() {
 }
 
 
-// Split Channel Batch 함수 정의 (완벽 수정)
+// Split Channel Batch (채널 선택형)
 function splitChannelBatch() {
+    // --- 채널 선택 UI ---
     folder = getDirectory("Choose the folder containing your images");
     if (folder == "") exit("No folder selected.");
+
+    Dialog.create("Select channels to export / merge");
+    Dialog.addCheckbox("Red (C1)", true);
+    Dialog.addCheckbox("Green (C2)", true);
+    Dialog.addCheckbox("Blue (C3)", true);
+    Dialog.show();
+    selR = Dialog.getCheckbox();
+    selG = Dialog.getCheckbox();
+    selB = Dialog.getCheckbox();
+
+    if (!selR && !selG && !selB) exit("Select at least one channel.");
+
+    // 선택 개수
+    selCount = (selR?1:0) + (selG?1:0) + (selB?1:0);
 
     fileList = getFileList(folder);
 
     for (i = 0; i < fileList.length; i++) {
         file = fileList[i];
 
+        // 허용 확장자만
         if (!endsWith(toLowerCase(file), ".jpg") &&
             !endsWith(toLowerCase(file), ".jpeg") &&
             !endsWith(toLowerCase(file), ".tif") &&
@@ -476,9 +492,8 @@ function splitChannelBatch() {
             if (!success) waitForDirectory(outputDir);
         }
 
+        // 열기 & 원본 jpg 저장(기존 로직 유지)
         open(filePath);
-
-        // tif 파일일 경우 jpg로 변환
         if (endsWith(toLowerCase(file), ".tif") || endsWith(toLowerCase(file), ".tiff")) {
             originalSavePath = outputDir + fileName + ".jpg";
             saveAs("Jpeg", originalSavePath);
@@ -489,53 +504,74 @@ function splitChannelBatch() {
             saveAs("Jpeg", originalSavePath);
         }
 
+        // Composite로 바꾼 뒤 분리
         imageType = getInfo("image.type");
         if (imageType != "composite") {
             run("Make Composite", "display=Composite");
         }
-
         run("Split Channels");
-        saveChannel("C1-" + fileName + ".jpg", outputDir + fileName + "_R.jpg");
-        saveChannel("C2-" + fileName + ".jpg", outputDir + fileName + "_G.jpg");
-        saveChannel("C3-" + fileName + ".jpg", outputDir + fileName + "_B.jpg");
+
+        // 개별 채널 저장 (체크된 것만)
+        if (selR) saveChannel("C1-" + fileName + ".jpg", outputDir + fileName + "_R.jpg");
+        if (selG) saveChannel("C2-" + fileName + ".jpg", outputDir + fileName + "_G.jpg");
+        if (selB) saveChannel("C3-" + fileName + ".jpg", outputDir + fileName + "_B.jpg");
+
         run("Close All");
 
-        // R+G 병합 및 저장
-        open(outputDir + fileName + "_R.jpg");
-        run("RGB Color");
-        rename("Red");
-        open(outputDir + fileName + "_G.jpg");
-        run("RGB Color");
-        rename("Green");
-        run("Merge Channels...", "c1=Red c2=Green create");
-        saveAs("Jpeg", outputDir + fileName + "_R+G.jpg");
-        run("Close All");
+        // --- 병합 저장 ---
+        if (selCount == 2) {
+            // 어떤 조합인지에 따라 하나만 병합
+            if (selR && selG) {
+                // R+G
+                open(outputDir + fileName + "_R.jpg"); run("RGB Color"); rename("Red");
+                open(outputDir + fileName + "_G.jpg"); run("RGB Color"); rename("Green");
+                run("Merge Channels...", "c1=Red c2=Green create");
+                saveAs("Jpeg", outputDir + fileName + "_R+G.jpg");
+                run("Close All");
+            } else if (selR && selB) {
+                // R+B
+                open(outputDir + fileName + "_R.jpg"); run("RGB Color"); rename("Red");
+                open(outputDir + fileName + "_B.jpg"); run("RGB Color"); rename("Blue");
+                run("Merge Channels...", "c1=Red c3=Blue create");
+                saveAs("Jpeg", outputDir + fileName + "_R+B.jpg");
+                run("Close All");
+            } else if (selG && selB) {
+                // G+B
+                open(outputDir + fileName + "_G.jpg"); run("RGB Color"); rename("Green");
+                open(outputDir + fileName + "_B.jpg"); run("RGB Color"); rename("Blue");
+                run("Merge Channels...", "c2=Green c3=Blue create");
+                saveAs("Jpeg", outputDir + fileName + "_G+B.jpg");
+                run("Close All");
+            }
+        } else if (selCount == 3) {
+            // 기존과 동일하게 모든 2채널 조합 병합
+            // R+G
+            open(outputDir + fileName + "_R.jpg"); run("RGB Color"); rename("Red");
+            open(outputDir + fileName + "_G.jpg"); run("RGB Color"); rename("Green");
+            run("Merge Channels...", "c1=Red c2=Green create");
+            saveAs("Jpeg", outputDir + fileName + "_R+G.jpg");
+            run("Close All");
 
-        // R+B 병합 및 저장
-        open(outputDir + fileName + "_R.jpg");
-        run("RGB Color");
-        rename("Red");
-        open(outputDir + fileName + "_B.jpg");
-        run("RGB Color");
-        rename("Blue");
-        run("Merge Channels...", "c1=Red c3=Blue create");
-        saveAs("Jpeg", outputDir + fileName + "_R+B.jpg");
-        run("Close All");
+            // R+B
+            open(outputDir + fileName + "_R.jpg"); run("RGB Color"); rename("Red");
+            open(outputDir + fileName + "_B.jpg"); run("RGB Color"); rename("Blue");
+            run("Merge Channels...", "c1=Red c3=Blue create");
+            saveAs("Jpeg", outputDir + fileName + "_R+B.jpg");
+            run("Close All");
 
-        // G+B 병합 및 저장
-        open(outputDir + fileName + "_G.jpg");
-        run("RGB Color");
-        rename("Green");
-        open(outputDir + fileName + "_B.jpg");
-        run("RGB Color");
-        rename("Blue");
-        run("Merge Channels...", "c2=Green c3=Blue create");
-        saveAs("Jpeg", outputDir + fileName + "_G+B.jpg");
-        run("Close All");
+            // G+B
+            open(outputDir + fileName + "_G.jpg"); run("RGB Color"); rename("Green");
+            open(outputDir + fileName + "_B.jpg"); run("RGB Color"); rename("Blue");
+            run("Merge Channels...", "c2=Green c3=Blue create");
+            saveAs("Jpeg", outputDir + fileName + "_G+B.jpg");
+            run("Close All");
+        }
+        // selCount == 1이면 병합 없음 (단일 채널만 저장)
     }
 
-    print("✅ 모든 이미지 처리를 완료했습니다!");
+    print("✅ 선택한 채널 기준으로 분리/병합을 완료했습니다!");
 }
+
 
 // getFileNameWithoutExtension 함수 정의 (반드시 필요)
 function getFileNameWithoutExtension(path) {
